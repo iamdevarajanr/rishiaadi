@@ -378,7 +378,18 @@
                 hole.classList.add('up');
                 activeMoles++;
 
-                const stayTime = Math.random() * (conf.maxTime - conf.minTime) + conf.minTime;
+                // DYNAMIC INTENSITY: Makes the game faster as time runs out!
+                let timeProgressFactor = 1.0;
+                if (currentDiff === 'normal') {
+                    // As timeLeft goes from 30 down to 0, factor goes from 1.0 down to 0.4
+                    // This makes the game up to 60% faster by the end!
+                    timeProgressFactor = 0.4 + (0.6 * (timeLeft / conf.duration));
+                }
+
+                const currentMinTime = conf.minTime * timeProgressFactor;
+                const currentMaxTime = conf.maxTime * timeProgressFactor;
+                
+                const stayTime = Math.random() * (currentMaxTime - currentMinTime) + currentMinTime;
                 
                 setTimeout(() => {
                     if (hole.classList.contains('up')) {
@@ -387,8 +398,16 @@
                     }
                 }, stayTime);
 
-                const nextTime = Math.random() * 500 + 300;
-                gameLoopTimer = setTimeout(spawnMole, currentDiff === 'hard' ? nextTime / 2 : nextTime);
+                const baseNextTime = Math.random() * 500 + 300;
+                let finalNextTime = baseNextTime;
+                
+                if (currentDiff === 'normal') {
+                     finalNextTime = baseNextTime * timeProgressFactor;
+                } else {
+                     finalNextTime = baseNextTime / 2; // Hard mode remains super fast
+                }
+                
+                gameLoopTimer = setTimeout(spawnMole, finalNextTime);
             }
 
             function createFloatingText(x, y, text, typeClass) {
