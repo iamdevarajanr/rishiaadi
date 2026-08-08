@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rishi a Adi!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        #rishi-game-container {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            min-height: 600px;
+            height: 75vh;
+            width: 100%;
+            margin: 0 auto;
+            overflow: hidden;
+            touch-action: none; /* Prevents zooming/scrolling on mobile taps */
+            user-select: none; /* Prevents text selection while playing */
+            position: relative;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            padding: 1rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hole {
+            aspect-ratio: 1 / 1;
+            background: radial-gradient(circle, #3e2723 30%, #5c4033 100%);
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 10px 15px rgba(0, 0, 0, 0.7), 0 4px 6px rgba(0,0,0,0.1);
+            border: 4px solid #795548;
+        }
+
+        .mole {
+            width: 75%;
+            height: auto;
+            position: absolute;
+            bottom: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: bottom 0.15s ease-out;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.4);
+            pointer-events: none; /* Let the parent hole handle the clicks for reliability */
+        }
+
+        .hole.up .mole {
+            bottom: 5%;
+            transition: bottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: auto; /* Clickable only when up */
+        }
+
+        .mole.special {
+            box-shadow: 0 0 20px 8px #f6e05e;
+            border: 3px solid #f6e05e;
+            background-color: #fffbeb;
+        }
+
+        /* Hit styling */
+        .hit-text {
+            position: fixed;
+            font-weight: 900;
+            font-size: 2.5rem;
+            pointer-events: none;
+            z-index: 9999;
+            animation: floatUp 0.6s ease-out forwards;
+            text-shadow: 0px 3px 6px rgba(0,0,0,0.8);
+        }
+        .hit-normal { color: #4ade80; } /* Green */
+        .hit-special { color: #f6e05e; } /* Yellow */
+
+        @keyframes floatUp {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+            50% { transform: translate(-50%, -80px) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -120px) scale(1); opacity: 0; }
+        }
+
+        /* Hammer custom cursor for desktop */
+        #hammer {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            font-size: 4rem;
+            transform-origin: bottom right; 
+            transform: translate(-30%, -30%) rotate(0deg); 
+            transition: transform 0.05s ease-out;
+            display: none;
+            filter: drop-shadow(4px 6px 8px rgba(0,0,0,0.4));
+        }
+        
+        #hammer.strike {
+            transform: translate(-40%, -20%) rotate(-55deg);
+        }
+
+        /* Hide hammer on touch devices */
+        @media (pointer: coarse) {
+            #hammer { display: none !important; }
+            .hole.up .mole { cursor: pointer; }
+        }
+        /* Hide normal cursor and show hammer on devices with a mouse */
+        @media (pointer: fine) {
+            body, .game-board, .mole, .hole { cursor: none; }
+            .btn, button { cursor: pointer; }
+            #hammer { display: block; }
+        }
+
+        @media (max-width: 400px) {
+            .game-board { gap: 0.5rem; padding: 0.5rem; }
+            .hole { border-width: 2px; }
+            h1 { font-size: 2.2rem !important; }
+            .mole { width: 85%; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0;">
+
+    <div id="rishi-game-container" class="flex flex-col items-center justify-center text-gray-800">
+        
+        <!-- Fullscreen Button -->
+        <button id="fullscreenBtn" class="absolute top-4 right-4 z-50 bg-white/50 hover:bg-white/90 text-gray-800 p-2.5 rounded-xl shadow-md backdrop-blur-sm transition-all active:scale-95 cursor-pointer" title="Toggle Fullscreen">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+        </button>
+
+        <div class="text-center mt-8 mb-4 z-20 relative w-full max-w-md px-4">
+            <h1 class="text-4xl md:text-5xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500 tracking-tight drop-shadow-md">
+                    <span id="score" class="text-blue-600 text-3xl">0</span>
+                </div>
+                <div class="text-gray-600 flex flex-col items-end">
+                    <span class="text-xs uppercase tracking-wider text-gray-400">Time</span>
+                    <span id="time" class="text-red-500 text-3xl">0</span>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 w-full bg-gray-100 p-1.5 rounded-xl">
+                <button id="btn-normal" class="diff-btn flex-1 py-2 rounded-lg font-bold transition-all bg-blue-500 text-white shadow-md transform scale-100" data-diff="normal">Normal</button>
+                <button id="btn-hard" class="diff-btn flex-1 py-2 rounded-lg font-bold transition-all text-gray-500 hover:bg-gray-200" data-diff="hard">Hard</button>
+            </div>
+
+            <button id="startBtn" class="btn w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white font-black py-4 px-6 rounded-xl shadow-lg transform transition active:scale-95 text-xl uppercase tracking-wide">
+                Start Game
+            </button>
+        </div>
+    </div>
+
+    <div class="game-board" id="gameBoard">
+        <!-- 9 Holes -->
+        <div class="hole" data-index="0"><img class="mole" alt="Mole" draggable="false" src=""></div>
+        <div class="hole" data-index="1"><img class="mole" alt="Mole" draggable="false" src=""></div>
+        <div class="hole" data-index="2"><img class="mole" alt="Mole" draggable="false" src=""></div>
+        <div class="hole" data-index="3"><img class="mole" alt="Mole" draggable="false" src=""></div>
+        <div class="hole" data-index="4"><img class="mole" alt="Mole" draggable="false" src=""></div>
+        <div class="hole" data-index="5"><img class="mole" alt="Mole" draggable="false" src=""></div>
+        <div class="hole" data-index="6"><img class="mole" alt="Mole" draggable="false" src=""></div>
+        <div class="hole" data-index="7"><img class="mole" alt="Mole" draggable="false" src=""></div>
+        <div class="hole" data-index="8"><img class="mole" alt="Mole" draggable="false" src=""></div>
+    </div>
+
+    <!-- Hammer Element -->
+    <div id="hammer">🔨</div>
+
+    <div id="messageBox" class="absolute inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center hidden z-50 backdrop-blur-sm px-4 rounded-2xl">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl transform transition-all scale-100 border-4 border-blue-500">
+            <h2 class="text-4xl font-black text-gray-800 mb-2">Time's Up!</h2>
+            <p class="text-gray-600 mb-6 text-xl">You scored <br><span id="finalScore" class="font-black text-blue-600 text-6xl my-2 block"></span> points!</p>
+            <button id="closeMsgBtn" class="btn w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-xl transition text-xl uppercase tracking-wide shadow-lg active:scale-95">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Wrapping everything in an IIFE ensures no global variable conflicts
+        (() => {
+            // Game Constants
+            const NORMAL_IMG_URL = 'https://lh3.googleusercontent.com/d/1ROK5CKKC-Ae9s0vsbieqHafEQriSCeFz';
+            const SPECIAL_IMG_URL = 'https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH';
+            const FALLBACK_IMG = 'https://placehold.co/150x150/4a5568/ffffff?text=Face';
+
+            // Preload images to prevent lag on first pop
+            const img1 = new Image(); img1.src = NORMAL_IMG_URL;
+            const img2 = new Image(); img2.src = SPECIAL_IMG_URL;
+
+            // DOM Elements
+            const holes = document.querySelectorAll('.hole');
+            const scoreBoard = document.querySelector('#score');
+            const timeDisplay = document.querySelector('#time');
+            const startBtn = document.querySelector('#startBtn');
+            const messageBox = document.querySelector('#messageBox');
+            const finalScoreDisplay = document.querySelector('#finalScore');
+            const closeMsgBtn = document.querySelector('#closeMsgBtn');
+            const diffBtns = document.querySelectorAll('.diff-btn');
+            const hammer = document.getElementById('hammer');
+            
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const gameContainer = document.getElementById('rishi-game-container');
+
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    if (gameContainer.requestFullscreen) gameContainer.requestFullscreen();
+                    else if (gameContainer.webkitRequestFullscreen) gameContainer.webkitRequestFullscreen(); // Safari
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); // Safari
+                }
+            });
+
+            // Game State
+            let lastHole;
+            let timeUp = false;
+            let score = 0;
+            let gameTimer;
+            let countdownInterval;
+            let currentDifficulty = 'normal';
+
+            // Difficulty Configuration
+            const settings = {
+                normal: { duration: 30, minTime: 600, maxTime: 1200, specialChance: 0.15 },
+                hard: { duration: 20, minTime: 300, maxTime: 700, specialChance: 0.30 }
+            };
+
+            // Set initial images so there are no broken image links on load
+            holes.forEach(hole => {
+                const img = hole.querySelector('.mole');
+                img.src = NORMAL_IMG_URL;
+                img.onerror = () => { img.src = FALLBACK_IMG; };
+            });
+
+            // Initialize default time
+            timeDisplay.textContent = settings[currentDifficulty].duration;
+
+            // Hammer Movement Logic
+            document.addEventListener('mousemove', (e) => {
+                if(window.matchMedia("(pointer: fine)").matches) {
+                    hammer.style.left = e.clientX + 'px';
+                    hammer.style.top = e.clientY + 'px';
+                }
+            });
+
+            const strikeHammer = () => hammer.classList.add('strike');
+            const liftHammer = () => hammer.classList.remove('strike');
+
+            document.addEventListener('mousedown', strikeHammer);
+            document.addEventListener('mouseup', liftHammer);
+            // Passive true for better scroll performance on mobile
+            document.addEventListener('touchstart', strikeHammer, {passive: true});
+            document.addEventListener('touchend', liftHammer, {passive: true});
+
+            // Difficulty Toggle Logic
+            diffBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!timeUp && startBtn.disabled) return; // Ignore if game is actively running
+                    
+                    // Reset styling on all buttons
+                    diffBtns.forEach(b => {
+                        b.classList.remove('bg-blue-500', 'text-white', 'shadow-md');
+                        b.classList.add('text-gray-500');
+                    });
+                    
+                    // Apply styling to clicked button
+                    const target = e.target;
+                    target.classList.add('bg-blue-500', 'text-white', 'shadow-md');
+                    target.classList.remove('text-gray-500');
+                    
+                    // Update State
+                    currentDifficulty = target.dataset.diff;
+                    timeDisplay.textContent = settings[currentDifficulty].duration;
+                });
+            });
+
+            function randomTime(min, max) {
+                return Math.round(Math.random() * (max - min) + min);
+            }
+
+            function randomHole(holesList) {
+                const idx = Math.floor(Math.random() * holesList.length);
+                const hole = holesList[idx];
+                if (hole === lastHole) return randomHole(holesList);
+                lastHole = hole;
+                return hole;
+            }
+
+            function peep() {
+                if (timeUp) return;
+                
+                const time = randomTime(settings[currentDifficulty].minTime, settings[currentDifficulty].maxTime);
+                const hole = randomHole(holes);
+                const moleImg = hole.querySelector('.mole');
+                
+                // Roll for special mole
+                const isSpecial = Math.random() < settings[currentDifficulty].specialChance;
+                
+                if (isSpecial) {
+                    moleImg.src = SPECIAL_IMG_URL;
+                    moleImg.dataset.points = "2";
+                    moleImg.classList.add('special');
+                } else {
+                    moleImg.src = NORMAL_IMG_URL;
+                    moleImg.dataset.points = "1";
+                    moleImg.classList.remove('special');
+                }
+
+                hole.classList.add('up');
+                
+                setTimeout(() => {
+                    hole.classList.remove('up');
+                    if (!timeUp) peep();
+                }, time);
+            }
+
+            function startGame() {
+                if (!timeUp && startBtn.disabled) return; // Prevent double clicking start
+
+                scoreBoard.textContent = 0;
+                timeUp = false;
+                score = 0;
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                let timeLeft = settings[currentDifficulty].duration;
+                timeDisplay.textContent = timeLeft;
+                timeDisplay.classList.remove('animate-pulse');
+                
+                peep();
+
+                // 1-second interval for countdown
+                clearInterval(countdownInterval);
+                countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    timeDisplay.textContent = timeLeft;
+                    if(timeLeft <= 5 && timeLeft > 0) {
+                        timeDisplay.classList.add('animate-pulse');
+                    }
+                }, 1000);
+                
+                // End game timeout
+                clearTimeout(gameTimer);
+                gameTimer = setTimeout(() => {
+                    timeUp = true;
+                    clearInterval(countdownInterval);
+                    timeDisplay.classList.remove('animate-pulse');
+                    timeDisplay.textContent = '0';
+                    startBtn.disabled = false;
+                    startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    
+                    // Show final score modal slightly after last mole hides
+                    setTimeout(() => {
+                        finalScoreDisplay.textContent = score;
+                        messageBox.classList.remove('hidden');
+                    }, 500);
+                }, settings[currentDifficulty].duration * 1000);
+            }
+
+            function whack(e) {
+                const mole = e.target;
+                const hole = mole.parentNode;
+                
+                // Only count hit if the hole is currently "up"
+                if (!hole.classList.contains('up')) return;
+                
+                const points = parseInt(mole.dataset.points) || 1;
+                score += points;
+                scoreBoard.textContent = score;
+                
+                // Immediately hide the mole upon hit
+                hole.classList.remove('up'); 
+
+                const hitText = document.createElement('div');
+                hitText.textContent = `+${points}`;
+                hitText.classList.add('hit-text');
+                
+                if (points > 1) {
+                    hitText.classList.add('hit-special');
+                } else {
+                    hitText.classList.add('hit-normal');
+                }
+                
+                // Determine Coordinates for floating text (support touch and mouse)
+                let x = e.clientX;
+                let y = e.clientY;
+                
+                if (e.touches && e.touches.length > 0) {
+                    x = e.touches[0].clientX;
+                    y = e.touches[0].clientY;
+                } else if (!x || !y) { // Fallback if coords missing
+                    const rect = mole.getBoundingClientRect();
+                    x = rect.left + rect.width / 2;
+                    y = rect.top + rect.height / 2;
+                }
+
+                hitText.style.left = `${x}px`;
+                hitText.style.top = `${y}px`;
+                document.body.appendChild(hitText);
+                
+                // Clean up animation text
+                setTimeout(() => {
+                    hitText.remove();
+                }, 600);
+            }
+
+            // Attach event listeners to moles
+            holes.forEach(hole => {
+                const mole = hole.querySelector('.mole');
+                // Use mousedown and touchstart for zero-latency registering
+                mole.addEventListener('mousedown', whack);
+                mole.addEventListener('touchstart', whack, {passive: true});
+            });
+
+            startBtn.addEventListener('click', startGame);
+
+            closeMsgBtn.addEventListener('click', () => {
+                messageBox.classList.add('hidden');
+                scoreBoard.textContent = '0';
+                timeDisplay.textContent = settings[currentDifficulty].duration;
+            });
+
+        })(); // End IIFE wrapper
+    </script>
+    </div>
+</body>
+</html>
