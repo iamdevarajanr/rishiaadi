@@ -1,7 +1,8 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Rishi a Adi!</title>
     
     <!-- App Icons for Mobile Install (Add to Home Screen) -->
@@ -13,23 +14,591 @@
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH">
     
     <script src="https://cdn.tailwindcss.com"></script>
-<!-- ... existing code ... -->
-```
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <style>
+        body {
+            margin: 0; 
+            padding: 0;
+            background-color: #1f2937; /* Dark backdrop for PC */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100dvh; /* Mobile friendly full height */
+            font-family: 'Fredoka', sans-serif;
+            overflow: hidden;
+        }
 
-### 2. The Splash Screen Logo Fix
-```html:Rishi a Adi!:index.html
-<!-- ... existing code ... -->
-<body style="margin: 0; padding: 0;">
+        #app-wrapper {
+            width: 100%;
+            max-width: 500px;
+            height: 100dvh;
+            max-height: 900px;
+            background: linear-gradient(135deg, #a7f3d0 0%, #34d399 100%); /* Funny bright theme */
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
 
-    <div id="rishi-game-container" class="flex flex-col items-center justify-center text-gray-800">
+        /* PC specific styling */
+        @media (min-width: 550px) {
+            #app-wrapper {
+                height: 90vh;
+                border-radius: 2rem;
+                border: 8px solid white;
+            }
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            width: 100%;
+            padding: 1rem;
+            position: relative;
+            z-index: 10;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        .hole {
+            aspect-ratio: 1 / 1;
+            background: radial-gradient(circle, #3e2723 30%, #5c4033 100%);
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.8), 0 4px 6px rgba(0,0,0,0.2);
+            border: 4px solid #8d6e63;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mole {
+            width: 100%; /* Bigger faces */
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            bottom: -100%;
+            left: 0;
+            transition: bottom 0.15s ease-out;
+            pointer-events: none; /* Let the parent hole handle clicks */
+        }
+
+        .hole.up .mole {
+            bottom: 0;
+            transition: bottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .mole.special { filter: drop-shadow(0 0 10px #fbbf24); }
+        .mole.spoof { filter: grayscale(50%) sepia(50%) hue-rotate(300deg); }
+
+        .hit-text {
+            position: absolute;
+            font-weight: 900;
+            font-size: 2.5rem;
+            pointer-events: none;
+            z-index: 50;
+            animation: floatUp 0.6s ease-out forwards;
+            text-shadow: 0px 3px 6px rgba(0,0,0,0.8);
+        }
+        .hit-normal { color: #fff; } 
+        .hit-special { color: #fef08a; } 
+        .hit-bad { color: #ef4444; font-size: 1.5rem; }
+
+        @keyframes floatUp {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+            50% { transform: translate(-50%, -80px) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -120px) scale(1); opacity: 0; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-2deg); }
+            50% { transform: translateX(10px) rotate(2deg); }
+            75% { transform: translateX(-10px) rotate(-2deg); }
+        }
+        .shake-screen { animation: shake 0.3s ease-in-out; }
+
+        .heart {
+            font-size: 1.5rem;
+            transition: all 0.3s;
+        }
+        .heart.lost {
+            opacity: 0.2;
+            filter: grayscale(100%);
+            transform: scale(0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-wrapper">
         
-        <!-- Splash Screen (Updated with Logo) -->
+        <!-- Splash Screen -->
         <div id="splashScreen" class="absolute inset-0 z-[100] bg-gradient-to-br from-yellow-300 to-orange-400 flex flex-col items-center justify-center transition-opacity duration-500">
-            <img src="https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH" alt="Rishi a Adi Logo" class="w-48 md:w-56 h-auto mb-6 animate-bounce drop-shadow-2xl">
-            <h1 class="text-5xl md:text-6xl font-black text-white tracking-widest drop-shadow-lg text-center" style="-webkit-text-stroke: 2px #d97706;">RISHI A ADI!</h1>
+            <img src="https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH" alt="Rishi a Adi Logo" class="w-48 h-48 object-cover rounded-full mb-6 animate-bounce drop-shadow-2xl border-4 border-white">
+            <h1 class="text-4xl md:text-5xl font-black text-white tracking-widest drop-shadow-lg text-center" style="-webkit-text-stroke: 2px #d97706;">RISHI A ADI!</h1>
             <p class="mt-4 text-orange-900 font-bold animate-pulse text-xl">Loading Game...</p>
         </div>
 
         <!-- Fullscreen Button -->
-        <button id="fullscreenBtn" class="absolute top-4 right-4 z-50 bg-white/50 hover:bg-white/90 text-gray-800 p-2.5 rounded-xl shadow-md backdrop-blur-sm transition-all active:scale-95 cursor-pointer" title="Toggle Fullscreen">
-<!-- ... existing code ... -->
+        <button id="fullscreenBtn" class="absolute top-4 right-4 z-50 bg-black/20 hover:bg-black/40 text-white p-2.5 rounded-xl shadow-md backdrop-blur-sm transition-all active:scale-95 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+        </button>
+
+        <!-- Dashboard Container -->
+        <div class="w-full px-6 pt-16 pb-4 flex flex-col items-center z-20">
+            
+            <!-- Lives Display -->
+            <div id="livesContainer" class="flex gap-1 mb-2">
+                <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
+            </div>
+
+            <!-- Score & Time -->
+            <div class="flex justify-between items-center w-full bg-white/50 p-4 rounded-2xl shadow-sm border-2 border-white mb-4">
+                <div class="flex flex-col">
+                    <span class="text-xs uppercase tracking-wider text-green-800 font-bold">Score</span>
+                    <span id="score" class="text-green-700 text-4xl font-black">0</span>
+                </div>
+                <div class="flex flex-col items-end">
+                    <span class="text-xs uppercase tracking-wider text-red-800 font-bold">Time</span>
+                    <span id="time" class="text-red-600 text-4xl font-black">0</span>
+                </div>
+            </div>
+            
+            <!-- Difficulties -->
+            <div class="flex gap-2 w-full mb-3">
+                <button id="btn-normal" class="diff-btn flex-1 py-2 rounded-xl font-bold transition-all bg-emerald-500 text-white shadow-md transform scale-100 border-b-4 border-emerald-700" data-diff="normal">Normal</button>
+                <button id="btn-hard" class="diff-btn flex-1 py-2 rounded-xl font-bold transition-all bg-white/50 text-emerald-800 border-2 border-white hover:bg-white" data-diff="hard">Hard</button>
+            </div>
+
+            <!-- Game Controls -->
+            <div class="flex gap-2 w-full">
+                <button id="startBtn" class="flex-[2] bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-black py-3 px-4 rounded-xl shadow-lg active:scale-95 text-lg uppercase tracking-wide border-b-4 border-yellow-600 transition-all">Start</button>
+                <button id="pauseBtn" class="flex-1 bg-blue-400 hover:bg-blue-500 text-white font-black py-3 px-4 rounded-xl shadow-lg active:scale-95 text-lg uppercase tracking-wide border-b-4 border-blue-600 transition-all hidden">Pause</button>
+                <button id="endBtn" class="flex-1 bg-red-400 hover:bg-red-500 text-white font-black py-3 px-4 rounded-xl shadow-lg active:scale-95 text-lg uppercase tracking-wide border-b-4 border-red-600 transition-all hidden">End</button>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div class="game-board" id="gameBoard">
+            <div class="hole" data-index="0"><img class="mole" alt="Mole" draggable="false" src=""></div>
+            <div class="hole" data-index="1"><img class="mole" alt="Mole" draggable="false" src=""></div>
+            <div class="hole" data-index="2"><img class="mole" alt="Mole" draggable="false" src=""></div>
+            <div class="hole" data-index="3"><img class="mole" alt="Mole" draggable="false" src=""></div>
+            <div class="hole" data-index="4"><img class="mole" alt="Mole" draggable="false" src=""></div>
+            <div class="hole" data-index="5"><img class="mole" alt="Mole" draggable="false" src=""></div>
+            <div class="hole" data-index="6"><img class="mole" alt="Mole" draggable="false" src=""></div>
+            <div class="hole" data-index="7"><img class="mole" alt="Mole" draggable="false" src=""></div>
+            <div class="hole" data-index="8"><img class="mole" alt="Mole" draggable="false" src=""></div>
+        </div>
+
+        <!-- Game Over Message Box -->
+        <div id="messageBox" class="absolute inset-0 bg-black/80 flex items-center justify-center hidden z-50 backdrop-blur-sm p-4">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl border-8 border-yellow-400 flex flex-col items-center">
+                <img id="popupLogo" src="https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH" class="w-40 h-40 object-cover rounded-full mb-4 border-4 border-yellow-400 animate-bounce">
+                
+                <h2 id="msgTitle" class="text-3xl font-black text-gray-800 mb-2">Time's Up!</h2>
+                
+                <p id="scoreTextContainer" class="text-gray-600 mb-6 text-lg font-semibold">
+                    <span id="msgTop">Nee rishi ah</span><br>
+                    <span id="finalScore" class="font-black text-emerald-500 text-6xl my-1 block"></span>
+                    <span id="msgBottom">thadava adichiruka.</span>
+                </p>
+                
+                <button id="closeMsgBtn" class="w-full bg-yellow-400 text-yellow-900 font-black py-4 px-4 rounded-2xl text-lg tracking-wide shadow-lg active:scale-95 border-b-4 border-yellow-600 transition-all leading-tight">
+                    Mudicha ena thirumba adi
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        (() => {
+            // Asset Constants
+            const NORMAL_IMG = 'https://lh3.googleusercontent.com/d/1ROK5CKKC-Ae9s0vsbieqHafEQriSCeFz';
+            const SPECIAL_IMG = 'https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH';
+            const SPOOF_IMG = 'https://drive.google.com/uc?id=1gaLbrDvBw-rkPz8CNW5izBFSRFMuwXMN';
+            
+            // Preload
+            [NORMAL_IMG, SPECIAL_IMG, SPOOF_IMG].forEach(src => { const img = new Image(); img.src = src; });
+
+            // DOM Elements
+            const wrapper = document.getElementById('app-wrapper');
+            const splashScreen = document.getElementById('splashScreen');
+            const holes = document.querySelectorAll('.hole');
+            const scoreDisplay = document.getElementById('score');
+            const timeDisplay = document.getElementById('time');
+            const livesHearts = document.querySelectorAll('.heart');
+            
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const endBtn = document.getElementById('endBtn');
+            const diffBtns = document.querySelectorAll('.diff-btn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            
+            // Popup Elements
+            const messageBox = document.getElementById('messageBox');
+            const popupLogo = document.getElementById('popupLogo');
+            const msgTitle = document.getElementById('msgTitle');
+            const msgTop = document.getElementById('msgTop');
+            const msgBottom = document.getElementById('msgBottom');
+            const finalScoreDisplay = document.getElementById('finalScore');
+            const closeMsgBtn = document.getElementById('closeMsgBtn');
+
+            const dict = {
+                highScore: ["Nee periya pudingi than!", "Verithanam!", "Aathadi, sema adi!", "Rishi azhuguraan!", "Thalaivaa super!"],
+                timeoutTitle: ["Nee adichathu pothum.", "Time mudinjithu!", "Aatam Over!", "Pothum da saami!"],
+                quitTitle: ["Bayathagoli !", "Oditaya?", "Saththam ilama poita!", "Enna bayama?"],
+                quitTextTop: ["Ena", "Enna pa", "Ada", "Acho"],
+                quitTextBottom: ["thadava adichathukai bayanthu end koduthuta.", "adichathuke bayanthutiya?", "podhum nu oditiya?", "adi kooda thaanga matiya?"],
+                normalTop: ["Nee rishi ah", "Unnala", "Summa", "Kevalam"],
+                normalBottom: ["thadava adichiruka.", "adi dhaan adika mudinjithu.", "point than eduthuka.", "thadava adi vaangitaan."],
+                deadTitle: ["Oolara Vitta!", "Sothappal!", "Kaanavitta!", "Gaali!", "Sema bulb!"],
+                deadBottom: ["adichitu life ellam tholachita.", "points eduthutu out aagita.", "adichathukulla life gaali."],
+                funnyMiss: ["Ayyo!", "Miss!", "Kaathu!", "Loosu!", "Goyyale!", "Venna!", "Sothappal!", "Bulb!", "Arivu ketta!"],
+                playAgain: ["Mudicha ena thirumba adi", "Dhairiyam iruntha vaa", "Innum adikanuma?", "Thirumba try panriya?", "Vaa da paakalam", "Restart pannu boss"]
+            };
+
+            function getRandomText(array) {
+                return array[Math.floor(Math.random() * array.length)];
+            }
+
+            let synth, memSynth, noiseSynth;
+            let audioInit = false;
+
+            function initAudio() {
+                if(audioInit) return;
+                try {
+                    Tone.start();
+                    synth = new Tone.Synth().toDestination();
+                    memSynth = new Tone.MembraneSynth().toDestination();
+                    noiseSynth = new Tone.NoiseSynth({
+                        noise: { type: 'pink' },
+                        envelope: { attack: 0.001, decay: 0.1, sustain: 0 }
+                    }).toDestination();
+                    audioInit = true;
+                } catch(e) { console.log("Audio not supported"); }
+            }
+
+            function playSound(type) {
+                if(!audioInit) return;
+                try {
+                    if(type === 'hitNormal') synth.triggerAttackRelease("C5", "8n");
+                    else if(type === 'hitSpecial') synth.triggerAttackRelease("E5", "8n");
+                    else if(type === 'miss') memSynth.triggerAttackRelease("G2", "8n");
+                    else if(type === 'spoof') noiseSynth.triggerAttackRelease("8n");
+                    else if(type === 'over') synth.triggerAttackRelease("A3", "2n");
+                } catch(e) {}
+            }
+
+            let score = 0, lives = 5, timeLeft = 0, currentDiff = 'normal';
+            let isPlaying = false, isPaused = false;
+            let gameLoopTimer, countdownTimer;
+            let activeMoles = 0;
+            let lastSpoofWord = "";
+
+            const config = {
+                normal: { duration: 30, minTime: 600, maxTime: 1000, specialChance: 0.15, maxMoles: 1 },
+                hard: { duration: 20, minTime: 400, maxTime: 800, specialChance: 0.20, maxMoles: 3 }
+            };
+
+            // Splash Screen removal
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    splashScreen.style.opacity = '0';
+                    setTimeout(() => splashScreen.style.display = 'none', 500);
+                }, 1000);
+                timeDisplay.textContent = config[currentDiff].duration;
+            });
+
+            // Fullscreen Handle
+            fullscreenBtn.addEventListener('click', () => {
+                try {
+                    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e=>console.log(e));
+                    else document.exitFullscreen().catch(e=>console.log(e));
+                } catch(err) { fullscreenBtn.style.display = 'none'; }
+            });
+
+            function updateLivesUI() {
+                livesHearts.forEach((heart, i) => {
+                    if (i < lives) heart.classList.remove('lost');
+                    else heart.classList.add('lost');
+                });
+            }
+
+            function getOpenHoles() {
+                const arr = Array.from(holes);
+                return arr.filter(h => !h.classList.contains('up') && h.dataset.locked !== 'true');
+            }
+
+            function spawnMole() {
+                if (!isPlaying || isPaused) return;
+
+                const openHoles = getOpenHoles();
+                if (openHoles.length === 0 || activeMoles >= config[currentDiff].maxMoles) {
+                    gameLoopTimer = setTimeout(spawnMole, 200);
+                    return;
+                }
+
+                const hole = openHoles[Math.floor(Math.random() * openHoles.length)];
+                const img = hole.querySelector('.mole');
+                const conf = config[currentDiff];
+
+                let type = 'normal';
+                let chance = Math.random();
+                
+                if (currentDiff === 'hard') {
+                    if (chance < 0.15) type = 'spoof';
+                    else if (chance < 0.35) type = 'special';
+                } else {
+                    if (chance < conf.specialChance) type = 'special';
+                }
+
+                hole.dataset.type = type;
+                hole.dataset.locked = 'false'; // Unlock hole for new mole
+
+                if (type === 'special') {
+                    img.src = SPECIAL_IMG;
+                    img.classList.add('special');
+                    img.classList.remove('spoof');
+                } else if (type === 'spoof') {
+                    img.src = SPOOF_IMG;
+                    img.classList.add('spoof');
+                    img.classList.remove('special');
+                } else {
+                    img.src = NORMAL_IMG;
+                    img.classList.remove('special', 'spoof');
+                }
+
+                hole.classList.add('up');
+                activeMoles++;
+
+                const stayTime = Math.random() * (conf.maxTime - conf.minTime) + conf.minTime;
+                
+                setTimeout(() => {
+                    if (hole.classList.contains('up')) {
+                        hole.classList.remove('up');
+                        activeMoles--;
+                    }
+                }, stayTime);
+
+                const nextTime = Math.random() * 500 + 300;
+                gameLoopTimer = setTimeout(spawnMole, currentDiff === 'hard' ? nextTime / 2 : nextTime);
+            }
+
+            function createFloatingText(x, y, text, typeClass) {
+                const el = document.createElement('div');
+                el.textContent = text;
+                el.className = `hit-text ${typeClass}`;
+                el.style.left = `${x}px`;
+                el.style.top = `${y}px`;
+                wrapper.appendChild(el);
+                setTimeout(() => el.remove(), 600);
+            }
+
+            function getHitWord() {
+                let word;
+                do { word = getRandomText(dict.funnyMiss); } while (word === lastSpoofWord);
+                lastSpoofWord = word;
+                return word;
+            }
+
+            function handleHit(e) {
+                if (!isPlaying || isPaused) return;
+                
+                const hole = e.target.closest('.hole');
+                if (!hole) return;
+
+                // Ghost click protection: If locked, ignore
+                if (hole.dataset.locked === 'true') return;
+                
+                const rect = hole.getBoundingClientRect();
+                const x = e.clientX || (e.touches ? e.touches[0].clientX : rect.left + rect.width/2);
+                const y = e.clientY || (e.touches ? e.touches[0].clientY : rect.top + rect.height/2);
+
+                // Lock hole briefly to prevent double taps
+                hole.dataset.locked = 'true';
+                setTimeout(() => { hole.dataset.locked = 'false'; }, 300); 
+
+                if (hole.classList.contains('up')) {
+                    // Valid Hit
+                    hole.classList.remove('up');
+                    activeMoles--;
+                    
+                    const type = hole.dataset.type;
+                    if (type === 'special') {
+                        score += 2;
+                        playSound('hitSpecial');
+                        createFloatingText(x, y, "+2", "hit-special");
+                        wrapper.classList.add('shake-screen');
+                        setTimeout(() => wrapper.classList.remove('shake-screen'), 300);
+                    } else if (type === 'spoof') {
+                        score -= 5;
+                        playSound('spoof');
+                        createFloatingText(x, y, `-${getHitWord()}`, "hit-bad");
+                        wrapper.classList.add('shake-screen');
+                        setTimeout(() => wrapper.classList.remove('shake-screen'), 300);
+                    } else {
+                        score += 1;
+                        playSound('hitNormal');
+                        createFloatingText(x, y, "+1", "hit-normal");
+                    }
+                } else {
+                    // Miss Penalty
+                    lives--;
+                    score--;
+                    playSound('miss');
+                    createFloatingText(x, y, `-${getHitWord()}`, "hit-bad");
+                    wrapper.classList.add('shake-screen');
+                    setTimeout(() => wrapper.classList.remove('shake-screen'), 300);
+                    updateLivesUI();
+
+                    if (lives <= 0) {
+                        endGame('dead');
+                    }
+                }
+                
+                scoreDisplay.textContent = score;
+            }
+
+            holes.forEach(hole => {
+                hole.addEventListener('pointerdown', handleHit);
+            });
+
+            function startCountdown() {
+                clearInterval(countdownTimer);
+                countdownTimer = setInterval(() => {
+                    if (!isPaused) {
+                        timeLeft--;
+                        timeDisplay.textContent = timeLeft;
+                        
+                        if(timeLeft <= 5) timeDisplay.classList.add('animate-pulse');
+                        
+                        if (timeLeft <= 0) endGame('timeout');
+                    }
+                }, 1000);
+            }
+
+            function startGame() {
+                initAudio();
+                isPlaying = true;
+                isPaused = false;
+                score = 0;
+                lives = 5;
+                timeLeft = config[currentDiff].duration;
+                activeMoles = 0;
+                
+                scoreDisplay.textContent = score;
+                timeDisplay.textContent = timeLeft;
+                timeDisplay.classList.remove('animate-pulse');
+                updateLivesUI();
+                
+                startBtn.classList.add('hidden');
+                pauseBtn.classList.remove('hidden');
+                endBtn.classList.remove('hidden');
+                
+                diffBtns.forEach(b => b.disabled = true);
+
+                holes.forEach(h => {
+                    h.classList.remove('up');
+                    h.dataset.locked = 'false';
+                });
+
+                startCountdown();
+                spawnMole();
+            }
+
+            function togglePause() {
+                isPaused = !isPaused;
+                pauseBtn.textContent = isPaused ? "Resume" : "Pause";
+                pauseBtn.classList.toggle('bg-purple-500', isPaused);
+                pauseBtn.classList.toggle('bg-blue-400', !isPaused);
+            }
+
+            function endGame(reason) {
+                isPlaying = false;
+                clearTimeout(gameLoopTimer);
+                clearInterval(countdownTimer);
+                timeDisplay.classList.remove('animate-pulse');
+                
+                playSound('over');
+
+                startBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+                endBtn.classList.add('hidden');
+                pauseBtn.textContent = "Pause";
+                pauseBtn.classList.remove('bg-purple-500');
+                pauseBtn.classList.add('bg-blue-400');
+                diffBtns.forEach(b => b.disabled = false);
+
+                holes.forEach(h => h.classList.remove('up'));
+
+                // Set dynamic text
+                closeMsgBtn.textContent = getRandomText(dict.playAgain);
+                finalScoreDisplay.textContent = score;
+                
+                if (reason === 'timeout' && score >= 40) {
+                    msgTitle.textContent = getRandomText(dict.highScore);
+                    msgTitle.className = "text-3xl font-black text-emerald-600 mb-2 animate-bounce";
+                    popupLogo.src = SPECIAL_IMG;
+                    msgTop.textContent = "Nee rishi ah";
+                    msgBottom.textContent = "thadava adichiruka.";
+                } else if (reason === 'timeout') {
+                    msgTitle.textContent = getRandomText(dict.timeoutTitle);
+                    msgTitle.className = "text-3xl font-black text-gray-800 mb-2";
+                    popupLogo.src = NORMAL_IMG;
+                    msgTop.textContent = getRandomText(dict.normalTop);
+                    msgBottom.textContent = getRandomText(dict.normalBottom);
+                } else if (reason === 'dead') {
+                    msgTitle.textContent = getRandomText(dict.deadTitle);
+                    msgTitle.className = "text-3xl font-black text-red-600 mb-2 animate-pulse";
+                    popupLogo.src = SPOOF_IMG;
+                    msgTop.textContent = getRandomText(dict.normalTop);
+                    msgBottom.textContent = getRandomText(dict.deadBottom);
+                } else if (reason === 'quit') {
+                    msgTitle.textContent = getRandomText(dict.quitTitle);
+                    msgTitle.className = "text-3xl font-black text-purple-600 mb-2";
+                    popupLogo.src = NORMAL_IMG;
+                    msgTop.textContent = getRandomText(dict.quitTextTop);
+                    msgBottom.textContent = getRandomText(dict.quitTextBottom);
+                }
+
+                setTimeout(() => messageBox.classList.remove('hidden'), 500);
+            }
+
+            startBtn.addEventListener('click', startGame);
+            pauseBtn.addEventListener('click', togglePause);
+            endBtn.addEventListener('click', () => endGame('quit'));
+
+            closeMsgBtn.addEventListener('click', () => {
+                messageBox.classList.add('hidden');
+                scoreDisplay.textContent = '0';
+                timeDisplay.textContent = config[currentDiff].duration;
+                lives = 5;
+                updateLivesUI();
+            });
+
+            diffBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (isPlaying) return;
+                    diffBtns.forEach(b => {
+                        b.classList.remove('bg-emerald-500', 'text-white', 'shadow-md', 'border-emerald-700');
+                        b.classList.add('bg-white/50', 'text-emerald-800');
+                    });
+                    const target = e.target;
+                    target.classList.add('bg-emerald-500', 'text-white', 'shadow-md', 'border-emerald-700');
+                    target.classList.remove('bg-white/50', 'text-emerald-800');
+                    currentDiff = target.dataset.diff;
+                    timeDisplay.textContent = config[currentDiff].duration;
+                });
+            });
+
+        })();
+    </script>
+</body>
+</html>
