@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rishi a Adi!</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
@@ -204,11 +205,14 @@
             </div>
 
             <div class="flex gap-2 w-full max-w-sm">
-                <button id="pauseBtn" class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-2 rounded-xl shadow-md transition-all active:scale-95 flex justify-center items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause
+                <button id="pauseBtn" class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-2 rounded-xl shadow-md transition-all active:scale-95 flex justify-center items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed text-[11px] sm:text-sm" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause
                 </button>
-                <button id="restartBtn" class="flex-1 bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 rounded-xl shadow-md transition-all active:scale-95 flex justify-center items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Restart
+                <button id="restartBtn" class="flex-1 bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 rounded-xl shadow-md transition-all active:scale-95 flex justify-center items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed text-[11px] sm:text-sm" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Restart
+                </button>
+                <button id="endBtn" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-xl shadow-md transition-all active:scale-95 flex justify-center items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed text-[11px] sm:text-sm" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg> End
                 </button>
             </div>
         </div>
@@ -238,7 +242,8 @@
         <!-- Pop-up Message Box (Locked inside container) -->
         <div id="messageBox" class="absolute inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center hidden z-50 backdrop-blur-sm px-4">
             <div class="bg-white rounded-3xl p-8 max-w-xs w-full text-center shadow-2xl transform transition-all scale-100 border-4 border-blue-500">
-                <h2 class="text-4xl font-black text-gray-800 mb-2">Time's Up!</h2>
+                <img src="https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH" alt="Special Mole Logo" class="w-24 h-24 mx-auto mb-4 rounded-full border-4 border-yellow-400 shadow-md object-cover bg-yellow-50">
+                <h2 id="endTitle" class="text-4xl font-black text-gray-800 mb-2">Time's Up!</h2>
                 <p class="text-gray-600 mb-6 text-xl">You scored <br><span id="finalScore" class="font-black text-blue-600 text-6xl my-2 block"></span> points!</p>
                 <button id="closeMsgBtn" class="btn w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-xl transition text-xl uppercase tracking-wide shadow-lg active:scale-95">
                     Play Again
@@ -269,7 +274,9 @@
             const startBtn = document.querySelector('#startBtn');
             const pauseBtn = document.querySelector('#pauseBtn');
             const restartBtn = document.querySelector('#restartBtn');
+            const endBtn = document.querySelector('#endBtn');
             const messageBox = document.querySelector('#messageBox');
+            const endTitle = document.querySelector('#endTitle');
             const finalScoreDisplay = document.querySelector('#finalScore');
             const closeMsgBtn = document.querySelector('#closeMsgBtn');
             const diffBtns = document.querySelectorAll('.diff-btn');
@@ -321,6 +328,25 @@
                 normal: { duration: 30, minTime: 600, maxTime: 1200, specialChance: 0.15 },
                 hard: { duration: 20, minTime: 300, maxTime: 700, specialChance: 0.30 }
             };
+
+            const normalSynth = new Tone.MembraneSynth().toDestination();
+            const specialSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "triangle" }
+            }).toDestination();
+            const gameOverSynth = new Tone.Synth({
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.1, decay: 0.2, sustain: 1, release: 1 }
+            }).toDestination();
+
+            function playNormalSound() {
+                if (Tone.context.state === 'running') normalSynth.triggerAttackRelease("C2", "8n", "+0.05", 0.8);
+            }
+            function playSpecialSound() {
+                if (Tone.context.state === 'running') specialSynth.triggerAttackRelease(["E4", "G4", "C5"], "8n", "+0.05", 0.5);
+            }
+            function playEndSound() {
+                if (Tone.context.state === 'running') gameOverSynth.triggerAttackRelease("C3", "1n");
+            }
 
             // Initialize placeholder images
             holes.forEach(hole => {
@@ -405,8 +431,11 @@
                 }, time);
             }
 
-            function startGame() {
+            async function startGame() {
                 if (!timeUp && startBtn.disabled && !isPaused) return;
+                
+                // Starts the browser's audio engine on first click
+                await Tone.start();
 
                 scoreBoard.textContent = 0;
                 timeUp = false;
@@ -418,6 +447,7 @@
                 startBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 pauseBtn.disabled = false;
                 restartBtn.disabled = false;
+                endBtn.disabled = false;
                 
                 timeDisplay.textContent = timeLeft;
                 timeDisplay.classList.remove('animate-pulse');
@@ -440,7 +470,7 @@
                 }, 1000);
             }
 
-            function endGame(showModal = true) {
+            function endGame(showModal = true, manuallyEnded = false) {
                 timeUp = true;
                 clearInterval(countdownInterval);
                 clearTimeout(currentMoleTimeout);
@@ -451,9 +481,10 @@
                 startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 pauseBtn.disabled = true;
                 restartBtn.disabled = true;
+                endBtn.disabled = true;
                 
                 isPaused = false;
-                pauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause';
+                pauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause';
                 pauseBtn.classList.replace('bg-green-400', 'bg-yellow-400');
                 pauseBtn.classList.replace('text-green-900', 'text-yellow-900');
                 
@@ -465,6 +496,8 @@
                 }
                 
                 if (showModal) {
+                    playEndSound();
+                    endTitle.textContent = manuallyEnded ? "Game Ended!" : "Time's Up!";
                     setTimeout(() => {
                         finalScoreDisplay.textContent = score;
                         messageBox.classList.remove('hidden');
@@ -510,6 +543,7 @@
                 hitText.classList.add('hit-text');
                 
                 if (points > 1) {
+                    playSpecialSound();
                     hitText.classList.add('hit-special');
                     // Add an engaging screen shake when hitting a special mole
                     const board = document.querySelector('.game-board');
@@ -517,6 +551,7 @@
                     void board.offsetWidth; // Trigger instant CSS refresh
                     board.classList.add('shake');
                 } else {
+                    playNormalSound();
                     hitText.classList.add('hit-normal');
                 }
                 
@@ -549,9 +584,13 @@
 
             startBtn.addEventListener('click', startGame);
             pauseBtn.addEventListener('click', togglePause);
-            restartBtn.addEventListener('click', () => {
+            restartBtn.addEventListener('click', async () => {
+                await Tone.start();
                 endGame(false); // End game without showing popup modal
                 setTimeout(startGame, 50); // Instantly reboot
+            });
+            endBtn.addEventListener('click', () => {
+                endGame(true, true); // True flags for opening modal and indicating it was forced ended
             });
 
             closeMsgBtn.addEventListener('click', () => {
