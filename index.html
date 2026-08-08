@@ -1,161 +1,35 @@
 <!-- ... existing code ... -->
-    <style>
-        :root {
-            --bg-color: #fef08a; /* Playful yellow */
-        }
-        body { 
-            margin: 0; padding: 0; background-color: var(--bg-color); color: #333; 
-            display: flex; align-items: center; justify-content: center; min-height: 100vh;
-        }
-
-        #rishi-game-container {
-            font-family: 'DynaPuff', cursive;
-            background: linear-gradient(135deg, #a7f3d0 0%, #fef08a 100%);
-            min-height: 100vh;
-            height: 100%;
-            width: 100vw;
-            max-width: 600px;
-            margin: 0 auto;
-            overflow: hidden;
-            touch-action: none; 
-            user-select: none;
-            position: relative;
-            box-shadow: 0 0 50px rgba(0,0,0,0.2);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Make it look like a sleek app interface on PC screens */
-        @media (min-width: 600px) {
-            #rishi-game-container {
-                min-height: auto;
-                height: 92vh;
-                border-radius: 24px;
-                border: 8px solid white;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            }
-        }
-
-        #splashScreen {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rishi a Adi!</title>
+    
+    <!-- App Icons for Mobile Install (Add to Home Screen) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#fef08a">
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
 <!-- ... existing code ... -->
 ```
 
-### 2. The Fullscreen Fix (For Desktop Displays)
+### 2. The Splash Screen Logo Fix
 ```html:Rishi a Adi!:index.html
 <!-- ... existing code ... -->
-                timeDisplay.textContent = settings[currentDifficulty].duration;
+<body style="margin: 0; padding: 0;">
 
-                fullscreenBtn.addEventListener('click', async () => {
-                    try {
-                        if (!document.fullscreenElement) {
-                            // Target the whole screen rather than just the game container so the styling stays perfect on PC
-                            if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
-                            else if (document.documentElement.webkitRequestFullscreen) await document.documentElement.webkitRequestFullscreen();
-                        } else {
-                            if (document.exitFullscreen) await document.exitFullscreen();
-                            else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
-                        }
-                    } catch (err) {
-                        fullscreenBtn.style.display = 'none';
-                    }
-                });
+    <div id="rishi-game-container" class="flex flex-col items-center justify-center text-gray-800">
+        
+        <!-- Splash Screen (Updated with Logo) -->
+        <div id="splashScreen" class="absolute inset-0 z-[100] bg-gradient-to-br from-yellow-300 to-orange-400 flex flex-col items-center justify-center transition-opacity duration-500">
+            <img src="https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH" alt="Rishi a Adi Logo" class="w-48 md:w-56 h-auto mb-6 animate-bounce drop-shadow-2xl">
+            <h1 class="text-5xl md:text-6xl font-black text-white tracking-widest drop-shadow-lg text-center" style="-webkit-text-stroke: 2px #d97706;">RISHI A ADI!</h1>
+            <p class="mt-4 text-orange-900 font-bold animate-pulse text-xl">Loading Game...</p>
+        </div>
 
-                document.addEventListener('mousemove', (e) => {
-<!-- ... existing code ... -->
-```
-
-### 3. The Ultimate Tanglish Randomizer
-```html:Rishi a Adi!:index.html
-<!-- ... existing code ... -->
-                        peepLoop();
-                    }
-                }
-
-                // New Helper for picking random phrases
-                function getRandom(arr) { 
-                    return arr[Math.floor(Math.random() * arr.length)]; 
-                }
-
-                function endGame(reason = 'timeout') {
-                    timeUp = true;
-                    clearInterval(countdownInterval);
-                    clearTimeout(masterLoopTimeout);
-                    for (let t of activeTimeouts) clearTimeout(t);
-                    activeTimeouts.clear();
-                    
-                    timeDisplay.classList.remove('animate-pulse');
-                    timeDisplay.textContent = '0';
-                    holes.forEach(h => h.classList.remove('up')); 
-                    
-                    startBtn.disabled = false;
-                    startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    pauseBtn.disabled = true;
-                    pauseBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    endBtn.disabled = true;
-                    endBtn.classList.add('opacity-50', 'cursor-not-allowed');
-
-                    if (score > highScore) {
-                        highScore = score;
-                        highScoreBoard.textContent = highScore;
-                    }
-
-                    playEndSound();
-
-                    // Randomized 10 variations for Play Again texts
-                    const replayTexts = [
-                        "Mudicha ena thirumba adi", "Innoru match polama?", "Dhairiyam irukka thirumba va", 
-                        "Adichathu pothuma? Innum adi!", "Thirumba adipiya ena?", "Vaa da paathukalam!", 
-                        "Innoru round podalama?", "Thilla iruntha start pannu!", "Meendum oru aatam!", "Once more vaa!"
-                    ];
-                    closeMsgBtn.textContent = getRandom(replayTexts);
-
-                    let tColor;
-
-                    if (score >= 40) {
-                        const titles = ["Periya Pudingi Than! 👑", "Thalaivaa! 🔥", "Verithanam! 💥", "Sema Mass! 🎇", "Nee Vera Level! 🚀", "Gethu Kaatita! 🥶"];
-                        const befores = ["Sema dhool! Nee Rishi ah", "Pichita po! Oru", "Arakka thaan! Gethaa", "Vaazhthukkal! Tharamana", "Adiyathi! Total ah"];
-                        const afters = ["thadava adichu thamsam pannita!", "mura adichu mas pannita!", "thadava sethara vituta!", "adi adichu alara vituta!", "thadava thuvamsam pannita!"];
-                        
-                        msgTitle.textContent = getRandom(titles);
-                        tColor = 'text-yellow-600';
-                        txtBeforeScore.textContent = getRandom(befores);
-                        txtAfterScore.textContent = getRandom(afters);
-                    } else if (reason === 'died') {
-                        const titles = ["Sethuta! 💔", "Sothappita! 🤦‍♂️", "Gaali! ☠️", "Aiyo Paavam! 🥺", "Game Over Da! 🛑", "Kaanama Poita! 👻"];
-                        const befores = ["5 thadava miss pannita! Total ah", "Aasaya koodithu aappu vechita! Verum", "Focus pannu boss! Nee", "Adika therila! Verum", "Kandravi! Total ah"];
-                        const afters = ["thadava thaan adichiruka.", "point thaan eduthuka.", "thadava adichu sothapita.", "mura thaan hit panniruka.", "point eduthu gaali aayita."];
-                        
-                        msgTitle.textContent = getRandom(titles);
-                        tColor = 'text-red-600';
-                        txtBeforeScore.textContent = getRandom(befores);
-                        txtAfterScore.textContent = getRandom(afters);
-                    } else if (reason === 'ended') {
-                        const titles = ["Bayathagoli ! 🤣", "Oditaya! 🏃‍♂️", "Paathiyil escape! 🐢", "Enna da puzhuthita! 🤨", "Bhayam ah! 😆"];
-                        const befores = ["Ena", "Verum", "Nee", "Aaha", "Sari vidu,"];
-                        const afters = ["thadava adichathukai bayanthu end koduthuta.", "point eduthutu paathiyil odita.", "thadava adichutu escape aayita.", "point la bayanthu back adichita.", "thadava hit pannitu quit pannita."];
-                        
-                        msgTitle.textContent = getRandom(titles);
-                        tColor = 'text-blue-600';
-                        txtBeforeScore.textContent = getRandom(befores);
-                        txtAfterScore.textContent = getRandom(afters);
-                    } else { // timeout
-                        const titles = ["Nee adichathu pothum!", "Time Up Da!", "Mudinchu!", "Nalla Try!", "Pothum Pothum!"];
-                        const befores = ["Nee Rishi ah", "Total ah", "Time aachu! Nee", "Paravala,", "Super! Nee"];
-                        const afters = ["thadava adichiruka!", "mura nallapadiya adichiruka.", "point thaan eduthiruka.", "point collect pannita.", "thadava hit panniruka."];
-                        
-                        msgTitle.textContent = getRandom(titles);
-                        tColor = 'text-purple-600';
-                        txtBeforeScore.textContent = getRandom(befores);
-                        txtAfterScore.textContent = getRandom(afters);
-                    }
-
-                    msgTitle.className = `text-3xl md:text-5xl font-black ${tColor} mb-2 tracking-tight drop-shadow-sm px-2 text-balance leading-tight`;
-
-                    setTimeout(() => {
-                        finalScoreDisplay.textContent = score;
-                        messageBox.classList.remove('hidden');
-                    }, 300);
-                }
-
-                function handleBoardClick(e) {
+        <!-- Fullscreen Button -->
+        <button id="fullscreenBtn" class="absolute top-4 right-4 z-50 bg-white/50 hover:bg-white/90 text-gray-800 p-2.5 rounded-xl shadow-md backdrop-blur-sm transition-all active:scale-95 cursor-pointer" title="Toggle Fullscreen">
 <!-- ... existing code ... -->
