@@ -5,16 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Rishi a Adi!</title>
     
-    <!-- App Icons for Mobile Install (Add to Home Screen) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#fef08a">
-    <!-- Using Google Drive Thumbnail endpoint to bypass strict CORS blocks -->
-    <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH&sz=w200">
-    <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH&sz=w200">
     
-    <!-- Libraries -->
+    <!-- Using Google Drive Thumbnail for Apple Devices -->
+    <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH&sz=w256">
+    <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH&sz=w256">
+    
+    <!-- Inline Manifest to Force Android App Icon -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Rishi a Adi!","short_name":"Rishi","display":"standalone","icons":[{"src":"https://drive.google.com/thumbnail?id=1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH&sz=w512","sizes":"512x512","type":"image/png"}],"start_url":".","background_color":"#111827","theme_color":"#fef08a"}'>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
@@ -23,7 +25,7 @@
         body {
             margin: 0; 
             padding: 0;
-            background-color: #111827; /* Dark cinematic backdrop for PC */
+            background-color: #111827; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -31,15 +33,15 @@
             width: 100vw;
             font-family: 'Fredoka', sans-serif;
             overflow: hidden;
-            touch-action: none; /* Block pinch-zoom and scroll completely */
+            touch-action: none; 
             user-select: none;
             -webkit-user-select: none;
         }
 
         #app-wrapper {
             width: 100%;
-            max-width: 500px; /* Constrain width for PC */
-            height: 100dvh; /* Strict height to prevent scrolling */
+            max-width: 500px; 
+            height: 100dvh; 
             background: linear-gradient(135deg, #a7f3d0 0%, #34d399 100%);
             position: relative;
             overflow: hidden;
@@ -52,7 +54,6 @@
             background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%);
         }
 
-        /* PC specific styling - Makes it look like a floating app */
         @media (min-width: 600px) {
             #app-wrapper {
                 height: 90dvh;
@@ -64,11 +65,11 @@
         }
 
         .game-board {
-            flex: 1; /* Takes up remaining space perfectly */
+            flex: 1; 
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(3, 1fr);
-            gap: 10px;
+            gap: 12px;
             width: 100%;
             padding: 10px 20px 20px 20px;
             position: relative;
@@ -91,34 +92,33 @@
         }
 
         .mole {
-            width: 90%;
-            height: 90%;
-            object-fit: contain; /* Ensures the whole face shows */
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
             position: absolute;
             bottom: -110%;
-            left: 5%;
+            left: 0;
             transition: bottom 0.15s ease-out, transform 0.1s;
-            pointer-events: none; /* Lets the hole absorb the click perfectly */
+            pointer-events: none; 
         }
 
         .hole.up .mole {
-            bottom: 0;
+            bottom: -5%;
             transition: bottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
         .hole.whacked .mole {
-            transform: scale(0.7) translateY(30%);
+            transform: scale(0.6) translateY(50%);
             filter: brightness(0.5) contrast(1.5);
         }
 
-        /* Spoof and Special Face filters */
-        .mole.special { filter: drop-shadow(0 0 15px #f59e0b) saturate(1.5); }
+        .mole.special { filter: drop-shadow(0 -5px 15px #f59e0b) saturate(1.5); }
         .mole.spoof { filter: grayscale(20%) sepia(50%) hue-rotate(320deg) contrast(1.3) drop-shadow(0 0 10px red); }
 
         .hit-text {
             position: absolute;
             font-weight: 900;
-            font-size: 2.5rem;
+            font-size: 3rem;
             pointer-events: none;
             z-index: 50;
             animation: floatUp 0.6s ease-out forwards;
@@ -126,9 +126,8 @@
             white-space: nowrap;
         }
         .hit-normal { color: #fff; } 
-        .hit-special { color: #fde047; } 
-        .hit-bad { color: #ef4444; font-size: 2rem; }
-        .hit-combo { color: #a855f7; font-size: 3.5rem; text-shadow: 0 0 15px white; }
+        .hit-special { color: #fde047; font-size: 3.5rem;} 
+        .hit-bad { color: #ef4444; font-size: 2.5rem; }
 
         @keyframes floatUp {
             0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
@@ -156,16 +155,6 @@
             transform: scale(0.7);
         }
         
-        .combo-badge {
-            transition: all 0.2s;
-            opacity: 0;
-            transform: scale(0.5);
-        }
-        .combo-badge.active {
-            opacity: 1;
-            transform: scale(1);
-        }
-
         #hammer-cursor {
             position: fixed;
             pointer-events: none;
@@ -182,7 +171,6 @@
             transform: translate(-40%, -20%) rotate(-60deg);
         }
 
-        /* Hide hammer on touch screens (phones), show on PC */
         @media (pointer: coarse) {
             #hammer-cursor { display: none !important; }
         }
@@ -195,55 +183,46 @@
 </head>
 <body>
 
-    <!-- Hammer Cursor Element -->
     <div id="hammer-cursor">🔨</div>
 
     <div id="app-wrapper">
         
+        <!-- Splash Screen -->
         <div id="splashScreen" class="absolute inset-0 z-[100] bg-gradient-to-br from-yellow-300 to-orange-500 flex flex-col items-center justify-center transition-opacity duration-700">
-            <!-- Loading correct Image format -->
             <img referrerpolicy="no-referrer" src="https://drive.google.com/thumbnail?id=1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH&sz=w600" alt="Logo" class="w-48 h-48 md:w-56 md:h-56 object-cover rounded-full mb-6 animate-bounce drop-shadow-2xl border-4 border-white">
             <h1 class="text-5xl md:text-6xl font-black text-white tracking-widest drop-shadow-xl text-center" style="-webkit-text-stroke: 2px #c2410c;">RISHI A ADI!</h1>
             <p class="mt-6 text-white font-black animate-pulse text-2xl bg-black/20 px-6 py-2 rounded-full backdrop-blur-sm">Loading...</p>
         </div>
 
-        <!-- Fullscreen Button -->
         <button id="fullscreenBtn" class="absolute top-4 right-4 z-50 bg-black/30 hover:bg-black/50 text-white p-3 rounded-xl shadow-lg backdrop-blur-sm transition-all active:scale-95">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
         </button>
 
         <div class="w-full px-4 pt-14 pb-2 flex flex-col items-center z-20">
             
-            <!-- Lives Display -->
             <div id="livesContainer" class="flex gap-2 mb-2 bg-black/10 px-4 py-1.5 rounded-full backdrop-blur-sm">
                 <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
             </div>
 
-            <!-- Score & Time Panel -->
+            <!-- Score Panel (Simplified without Combo) -->
             <div class="flex justify-between items-center w-full bg-white/60 p-3 rounded-3xl shadow-lg border-4 border-white mb-3 relative overflow-hidden">
-                <div class="flex flex-col z-10 w-1/3">
+                <div class="flex flex-col z-10 w-1/2">
                     <span class="text-xs uppercase tracking-widest text-green-900 font-bold">Score</span>
                     <span id="score" class="text-green-700 text-4xl font-black drop-shadow-sm leading-none">0</span>
                 </div>
                 
-                <!-- Combo Badge -->
-                <div id="comboBadge" class="combo-badge absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-purple-500 text-white font-black px-4 py-1 rounded-full border-2 border-white shadow-lg text-lg flex items-center gap-1 z-0 w-1/3 justify-center">
-                    🔥 <span id="comboText">2X</span>
-                </div>
-
-                <div class="flex flex-col items-end z-10 w-1/3">
+                <div class="flex flex-col items-end z-10 w-1/2">
                     <span class="text-xs uppercase tracking-widest text-red-900 font-bold">Time</span>
                     <span id="time" class="text-red-600 text-4xl font-black drop-shadow-sm leading-none">0</span>
                 </div>
             </div>
             
-            <!-- Difficulty Toggles -->
+            <!-- Controls -->
             <div class="flex gap-2 w-full mb-3">
                 <button id="btn-normal" class="diff-btn flex-1 py-2 rounded-2xl font-black transition-all bg-emerald-500 text-white shadow-xl transform scale-100 border-b-4 border-emerald-700 text-lg tracking-wide" data-diff="normal">Normal</button>
                 <button id="btn-hard" class="diff-btn flex-1 py-2 rounded-2xl font-black transition-all bg-white/50 text-emerald-900 border-2 border-white hover:bg-white text-lg tracking-wide" data-diff="hard">Hard 🔥</button>
             </div>
 
-            <!-- Controls -->
             <div class="flex gap-2 w-full">
                 <button id="startBtn" class="flex-[2] bg-gradient-to-b from-yellow-300 to-yellow-500 hover:to-yellow-400 text-yellow-900 font-black py-3 px-4 rounded-2xl shadow-xl active:scale-95 text-xl uppercase tracking-widest border-b-8 border-yellow-700 transition-all">Start</button>
                 <button id="pauseBtn" class="flex-1 bg-blue-400 hover:bg-blue-500 text-white font-black py-3 px-4 rounded-2xl shadow-xl active:scale-95 text-lg uppercase tracking-wide border-b-6 border-blue-600 transition-all hidden">Pause</button>
@@ -271,11 +250,11 @@
                 
                 <p id="scoreTextContainer" class="text-gray-600 mb-4 text-lg font-bold bg-gray-100 p-4 rounded-2xl w-full border-2 border-gray-200">
                     <span id="msgTop">Nee rishi ah</span><br>
-                    <span id="finalScore" class="font-black text-emerald-500 text-[4rem] leading-none my-1 block drop-shadow-md">0</span>
+                    <span id="finalScore" class="font-black text-emerald-500 text-[4.5rem] leading-none my-2 block drop-shadow-md">0</span>
                     <span id="msgBottom">thadava adichiruka.</span>
                 </p>
                 
-                <button id="closeMsgBtn" class="w-full bg-gradient-to-b from-yellow-300 to-yellow-500 text-yellow-900 font-black py-4 px-2 rounded-2xl text-[1.1rem] tracking-wide shadow-xl active:scale-95 border-b-8 border-yellow-700 transition-all leading-tight">
+                <button id="closeMsgBtn" class="w-full bg-gradient-to-b from-yellow-300 to-yellow-500 text-yellow-900 font-black py-4 px-2 rounded-2xl text-[1.2rem] tracking-wide shadow-xl active:scale-95 border-b-8 border-yellow-700 transition-all leading-tight">
                     Play Again
                 </button>
             </div>
@@ -285,27 +264,24 @@
 
     <script>
         (() => {
-            // Assets - Using the highly reliable thumbnail API to bypass Google Drive security
+            // Assets - Using direct Thumbnail URL bypass to force loading securely
             const NORMAL_IMG = 'https://drive.google.com/thumbnail?id=1ROK5CKKC-Ae9s0vsbieqHafEQriSCeFz&sz=w600';
             const SPECIAL_IMG = 'https://drive.google.com/thumbnail?id=1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH&sz=w600';
             const SPOOF_IMG = 'https://drive.google.com/thumbnail?id=1gaLbrDvBw-rkPz8CNW5izBFSRFMuwXMN&sz=w600';
             
-            // Preload to prevent lag (using no-referrer to ensure they fetch)
+            // Preload to prevent lag 
             [NORMAL_IMG, SPECIAL_IMG, SPOOF_IMG].forEach(src => { 
                 const img = new Image(); 
                 img.referrerPolicy = "no-referrer";
                 img.src = src; 
             });
 
-            // DOM Elements
             const wrapper = document.getElementById('app-wrapper');
             const splashScreen = document.getElementById('splashScreen');
             const holes = document.querySelectorAll('.hole');
             const scoreDisplay = document.getElementById('score');
             const timeDisplay = document.getElementById('time');
             const livesHearts = document.querySelectorAll('.heart');
-            const comboBadge = document.getElementById('comboBadge');
-            const comboText = document.getElementById('comboText');
             
             const startBtn = document.getElementById('startBtn');
             const pauseBtn = document.getElementById('pauseBtn');
@@ -326,26 +302,22 @@
                 highScore: [
                     "Nee periya pudingi than!", "Verithanam!", "Aathadi, sema adi!", 
                     "Rishi azhuguraan!", "Thalaivaa super!", "Kizhichita po!", 
-                    "Marana Mass!", "Unna adikka aale illa!", "Pinita po boss!", 
-                    "Bhayangarama adikiraye!", "Thee mathiri adi!"
+                    "Marana Mass!", "Unna adikka aale illa!", "Pinita po boss!"
                 ],
                 timeoutTitle: [
                     "Nee adichathu pothum.", "Time mudinjithu!", "Aatam Over!", 
                     "Pothum da saami!", "Kaipulla tired aagita!", "Nimirnthu paru!", 
-                    "Kai valikithaa?", "Moochu vangutha?", "Podhum rest edu!", "Gethu kaatita!"
+                    "Kai valikithaa?", "Moochu vangutha?"
                 ],
                 quitTitle: [
                     "Bayathagoli !", "Oditaya?", "Saththam ilama poita!", 
                     "Enna bayama?", "Odatha nillu!", "Suruttu vizhunthucha?", 
-                    "Dhairiyam illaya?", "Paathila oduriye?", "Gethu kurainjiducha?"
+                    "Dhairiyam illaya?"
                 ],
-                quitTextTop: [
-                    "Ena", "Enna pa", "Ada", "Acho", "Ayayyo", "Yov", "Che"
-                ],
+                quitTextTop: ["Ena", "Enna pa", "Ada", "Acho", "Ayayyo", "Yov", "Che"],
                 quitTextBottom: [
                     "thadava adichathukai bayanthu end koduthuta.", "adichathuke bayanthutiya?", 
-                    "podhum nu oditiya?", "adi kooda thaanga matiya?", "points eduthutu escape ah?",
-                    "score paathutu oditiya?", "thadava adichathuku over build up ah?"
+                    "podhum nu oditiya?", "adi kooda thaanga matiya?", "points eduthutu escape ah?"
                 ],
                 normalTop: [
                     "Nee rishi ah", "Unnala", "Summa", "Kevalam", "Romba srama pattu", 
@@ -353,28 +325,25 @@
                 ],
                 normalBottom: [
                     "thadava adichiruka.", "adi dhaan adika mudinjithu.", 
-                    "point than eduthuka.", "thadava adi vaangitaan.", "points eduthuruka.",
-                    "thadava kizhichiruka.", "score than vangiruka."
+                    "point than eduthuka.", "thadava adi vaangitaan.", "points eduthuruka."
                 ],
                 deadTitle: [
                     "Oolara Vitta!", "Sothappal!", "Kaanavitta!", "Gaali!", 
                     "Sema bulb!", "Katha mudinjithu!", "Avasara kudukkai!",
-                    "Goyyale out!", "Maanam pochu!", "Arivu ketta!"
+                    "Goyyale out!"
                 ],
                 deadBottom: [
                     "adichitu life ellam tholachita.", "points eduthutu out aagita.", 
-                    "adichathukulla life gaali.", "points ku asai pattu gaali aagita.",
-                    "points vangi out aagi nirkira.", "adichi life ah gaali pannita."
+                    "adichathukulla life gaali.", "points ku asai pattu gaali aagita."
                 ],
                 funnyMiss: [
                     "Ayyo!", "Miss!", "Kaathu!", "Loosu!", "Goyyale!", 
-                    "Venna!", "Sothappal!", "Bulb!", "Arivu ketta!", "Kuruvi!", 
-                    "Paathu adi!", "Kannu theriutha?", "Kuruttu adi!", "Mokka!", "Vettu!"
+                    "Venna!", "Sothappal!", "Bulb!", "Arivu ketta!", "Kuruvi!"
                 ],
                 playAgain: [
                     "Mudicha ena thirumba adi", "Dhairiyam iruntha vaa", "Innum adikanuma?", 
                     "Thirumba try panriya?", "Vaa da paakalam", "Restart pannu boss", 
-                    "Innoru aatam podlama?", "Gethu iruntha thirumba aadu", "Pudusa aadu"
+                    "Innoru aatam podlama?", "Gethu iruntha thirumba aadu"
                 ]
             };
 
@@ -387,7 +356,7 @@
                 return word;
             }
 
-            let synth, memSynth, noiseSynth, comboSynth;
+            let synth, memSynth, noiseSynth;
             let audioInit = false;
 
             function initAudio() {
@@ -395,12 +364,7 @@
                 try {
                     Tone.start();
                     synth = new Tone.Synth({ oscillator: { type: 'sine' } }).toDestination();
-                    comboSynth = new Tone.Synth({ oscillator: { type: 'triangle' } }).toDestination();
-                    
-                    // Funny bouncy synth for missing
                     memSynth = new Tone.MembraneSynth({ pitchDecay: 0.1, octaves: 4 }).toDestination();
-                    
-                    // Squelch synth for spoof faces
                     noiseSynth = new Tone.NoiseSynth({
                         noise: { type: 'pink' },
                         envelope: { attack: 0.01, decay: 0.3, sustain: 0 }
@@ -418,10 +382,9 @@
                         synth.triggerAttackRelease("E5", "16n", now);
                         synth.triggerAttackRelease("G5", "16n", now + 0.1);
                     }
-                    else if(type === 'miss') memSynth.triggerAttackRelease("C2", "8n", now); // Low bonk
-                    else if(type === 'spoof') noiseSynth.triggerAttackRelease("8n", now); // Squelch
+                    else if(type === 'miss') memSynth.triggerAttackRelease("C2", "8n", now); 
+                    else if(type === 'spoof') noiseSynth.triggerAttackRelease("8n", now); 
                     else if(type === 'over') synth.triggerAttackRelease("A3", "2n", now);
-                    else if(type === 'combo') comboSynth.triggerAttackRelease("C6", "16n", now);
                 } catch(e) {}
             }
 
@@ -429,15 +392,14 @@
             let isPlaying = false, isPaused = false;
             let gameLoopTimer, countdownTimer;
             let activeMoles = 0;
-            let comboCount = 0;
-            let multiplier = 1;
 
             const config = {
-                normal: { duration: 30, minTime: 650, maxTime: 1200, specialChance: 0.15, maxMoles: 1 },
-                hard: { duration: 25, minTime: 400, maxTime: 800, specialChance: 0.20, maxMoles: 3 }
+                // Easy Mode: Smooth scaling, max 1 mole at a time
+                normal: { duration: 30, minTime: 550, maxTime: 950, specialChance: 0.20, maxMoles: 1 },
+                // Hard Mode: Slower maximum speed than before, but up to 2 moles at once
+                hard: { duration: 25, minTime: 450, maxTime: 750, specialChance: 0.25, maxMoles: 2 }
             };
 
-            // Loading screen handler
             window.addEventListener('load', () => {
                 setTimeout(() => {
                     splashScreen.style.opacity = '0';
@@ -446,7 +408,6 @@
                 timeDisplay.textContent = config[currentDiff].duration;
             });
 
-            // Hammer Cursor Logic
             document.addEventListener('mousemove', (e) => {
                 if(window.matchMedia("(pointer: fine)").matches) {
                     hammerCursor.style.left = e.clientX + 'px';
@@ -455,12 +416,9 @@
             });
             const strikeHammer = () => hammerCursor.classList.add('strike');
             const liftHammer = () => hammerCursor.classList.remove('strike');
-            document.addEventListener('mousedown', strikeHammer);
-            document.addEventListener('mouseup', liftHammer);
-            document.addEventListener('touchstart', strikeHammer, {passive: true});
-            document.addEventListener('touchend', liftHammer, {passive: true});
+            document.addEventListener('pointerdown', strikeHammer);
+            document.addEventListener('pointerup', liftHammer);
 
-            // Fullscreen Handle
             fullscreenBtn.addEventListener('click', () => {
                 try {
                     if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
@@ -475,28 +433,9 @@
                 });
             }
 
-            function updateCombo(reset = false) {
-                if (reset) {
-                    comboCount = 0;
-                    multiplier = 1;
-                    comboBadge.classList.remove('active');
-                } else {
-                    comboCount++;
-                    if (comboCount >= 3) {
-                        multiplier = Math.min(4, Math.floor(comboCount / 3) + 1); // Max 4x
-                        comboText.textContent = `${multiplier}X`;
-                        comboBadge.classList.add('active');
-                        comboBadge.style.transform = 'translate(-50%, -50%) scale(1.2)';
-                        setTimeout(() => comboBadge.style.transform = 'translate(-50%, -50%) scale(1)', 150);
-                        playSound('combo');
-                    }
-                }
-            }
-
             function spawnMole() {
                 if (!isPlaying || isPaused) return;
 
-                // Ensure we don't pick a hole that is already up or locked
                 const openHoles = Array.from(holes).filter(h => !h.classList.contains('up') && h.dataset.locked !== 'true');
                 if (openHoles.length === 0 || activeMoles >= config[currentDiff].maxMoles) {
                     gameLoopTimer = setTimeout(spawnMole, 200);
@@ -511,8 +450,8 @@
                 let chance = Math.random();
                 
                 if (currentDiff === 'hard') {
-                    if (chance < 0.20) type = 'spoof'; // 20% chance in hard mode
-                    else if (chance < 0.40) type = 'special'; // 20% chance in hard mode
+                    if (chance < 0.15) type = 'spoof'; 
+                    else if (chance < 0.35) type = 'special'; 
                 } else {
                     if (chance < conf.specialChance) type = 'special';
                 }
@@ -535,20 +474,22 @@
                 hole.classList.add('up');
                 activeMoles++;
 
-                // Dynamic Intensity Engine: Faces get faster as the clock runs out!
-                let timeProgressFactor = 0.4 + (0.6 * (timeLeft / conf.duration));
-                if(currentDiff === 'hard') timeProgressFactor = Math.max(0.3, timeProgressFactor - 0.2); 
+                // Difficulty slowly increases as timer goes down (Starts at 1.0 multiplier, goes down to 0.6)
+                let timeProgressFactor = 0.6 + (0.4 * (timeLeft / conf.duration));
                 
                 const stayTime = Math.random() * (conf.maxTime * timeProgressFactor - conf.minTime * timeProgressFactor) + (conf.minTime * timeProgressFactor);
                 
-                setTimeout(() => {
+                // Track the specific timeout for this hole so we can cancel it if hit
+                const hideTimer = setTimeout(() => {
                     if (hole.classList.contains('up') && !hole.classList.contains('whacked')) {
                         hole.classList.remove('up');
                         activeMoles--;
                     }
                 }, stayTime);
+                
+                hole.dataset.timerId = hideTimer;
 
-                const nextTime = (Math.random() * 500 + 300) * timeProgressFactor;
+                const nextTime = (Math.random() * 400 + 300) * timeProgressFactor;
                 gameLoopTimer = setTimeout(spawnMole, nextTime);
             }
 
@@ -565,11 +506,10 @@
             function handleHit(e) {
                 if (!isPlaying || isPaused) return;
                 
-                e.preventDefault(); // Prevents ghost clicks on mobile phones!
-
                 const hole = e.target.closest('.hole');
                 if (!hole) return;
 
+                // Stop Double-Clicks / Ghost-Clicks
                 if (hole.dataset.locked === 'true' || hole.classList.contains('whacked')) return;
                 
                 const rect = hole.getBoundingClientRect();
@@ -579,33 +519,32 @@
                 hole.dataset.locked = 'true';
                 
                 if (hole.classList.contains('up')) {
-                    // Successful Hit
+                    // Successful Hit! Cancel the auto-hide timer.
+                    clearTimeout(parseInt(hole.dataset.timerId));
                     hole.classList.add('whacked'); 
+                    activeMoles--;
+                    
                     setTimeout(() => {
                         hole.classList.remove('up', 'whacked');
                         hole.dataset.locked = 'false';
-                        activeMoles--;
                     }, 200);
                     
                     const type = hole.dataset.type;
                     if (type === 'spoof') {
-                        updateCombo(true); 
                         score -= 5;
                         playSound('spoof');
                         createFloatingText(x, y, `-${getRandomText(dict.funnyMiss)}`, "hit-bad");
                         wrapper.classList.add('shake-hard');
                         setTimeout(() => wrapper.classList.remove('shake-hard'), 400);
                     } else {
-                        updateCombo(false); 
-                        const basePts = (type === 'special') ? 2 : 1;
-                        const earnedPts = basePts * multiplier;
+                        // Scoring (No combo system, just raw points)
+                        const earnedPts = (type === 'special') ? 2 : 1;
                         score += earnedPts;
                         
                         playSound(type === 'special' ? 'hitSpecial' : 'hitNormal');
                         
-                        const textClass = multiplier > 1 ? "hit-combo" : (type === 'special' ? "hit-special" : "hit-normal");
-                        const textMsg = multiplier > 1 ? `+${earnedPts} (x${multiplier})` : `+${earnedPts}`;
-                        createFloatingText(x, y, textMsg, textClass);
+                        const textClass = (type === 'special' ? "hit-special" : "hit-normal");
+                        createFloatingText(x, y, `+${earnedPts}`, textClass);
                         
                         if(type === 'special') {
                             wrapper.classList.add('shake-screen');
@@ -613,8 +552,7 @@
                         }
                     }
                 } else {
-                    // Penalty for missing and hitting an empty hole!
-                    updateCombo(true);
+                    // Penalty for missing!
                     lives--;
                     score--;
                     playSound('miss');
@@ -631,6 +569,7 @@
                 scoreDisplay.textContent = score;
             }
 
+            // pointerdown prevents duplicate mouse/touch events firing
             holes.forEach(hole => { 
                 hole.addEventListener('pointerdown', handleHit); 
             });
@@ -642,7 +581,6 @@
                         timeLeft--;
                         timeDisplay.textContent = timeLeft;
                         
-                        // Panic Mode for last 10 seconds
                         if(timeLeft <= 10 && timeLeft > 0) {
                             timeDisplay.classList.add('animate-pulse');
                             wrapper.classList.add('panic-mode');
@@ -663,7 +601,6 @@
                 lives = 5;
                 timeLeft = config[currentDiff].duration;
                 activeMoles = 0;
-                updateCombo(true);
                 
                 scoreDisplay.textContent = score;
                 timeDisplay.textContent = timeLeft;
@@ -679,6 +616,7 @@
                 holes.forEach(h => {
                     h.classList.remove('up', 'whacked');
                     h.dataset.locked = 'false';
+                    clearTimeout(parseInt(h.dataset.timerId));
                 });
 
                 startCountdown();
@@ -700,7 +638,6 @@
                 wrapper.classList.remove('panic-mode');
                 
                 playSound('over');
-                updateCombo(true);
 
                 startBtn.classList.remove('hidden');
                 pauseBtn.classList.add('hidden');
@@ -710,12 +647,15 @@
                 pauseBtn.classList.add('bg-blue-400');
                 diffBtns.forEach(b => b.disabled = false);
 
-                holes.forEach(h => h.classList.remove('up', 'whacked'));
+                holes.forEach(h => {
+                    h.classList.remove('up', 'whacked')
+                    clearTimeout(parseInt(h.dataset.timerId));
+                });
 
                 closeMsgBtn.textContent = getRandomText(dict.playAgain);
                 finalScoreDisplay.textContent = score;
                 
-                // Constructing the highly randomized Popup Message
+                // ONLY SHOWING IMAGE 1 (Normal) OR IMAGE 2 (Special)
                 if (reason === 'timeout' && score >= 40) {
                     msgTitle.textContent = getRandomText(dict.highScore);
                     msgTitle.className = "text-3xl font-black text-emerald-600 mb-2 animate-bounce";
@@ -731,7 +671,7 @@
                 } else if (reason === 'dead') {
                     msgTitle.textContent = getRandomText(dict.deadTitle);
                     msgTitle.className = "text-3xl font-black text-red-600 mb-2 animate-pulse drop-shadow-md";
-                    popupLogo.src = SPOOF_IMG; // Show spoof face when dead
+                    popupLogo.src = NORMAL_IMG; // Fixed to normal image instead of spoof
                     msgTop.textContent = getRandomText(dict.normalTop);
                     msgBottom.textContent = getRandomText(dict.deadBottom);
                 } else if (reason === 'quit') {
@@ -757,7 +697,6 @@
                 updateLivesUI();
             });
 
-            // Difficulty logic
             diffBtns.forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     if (isPlaying) return;
