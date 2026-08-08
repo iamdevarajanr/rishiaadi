@@ -78,10 +78,10 @@
         }
 
         .mole {
-            width: 75%;
+            width: 90%; /* Much bigger faces! */
             height: auto;
             position: absolute;
-            bottom: -100%;
+            bottom: -110%; /* Hidden further down */
             left: 50%;
             transform: translateX(-50%);
             transition: bottom 0.15s ease-out;
@@ -91,7 +91,7 @@
         }
 
         .hole.up .mole {
-            bottom: 5%;
+            bottom: 2%; /* Appears slightly higher */
             transition: bottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: auto; /* Clickable only when up */
         }
@@ -114,6 +114,24 @@
         }
         .hit-normal { color: #4ade80; } /* Green */
         .hit-special { color: #f6e05e; } /* Yellow */
+
+        /* Funny Miss Text */
+        .miss-text {
+            position: fixed;
+            font-weight: 900;
+            font-size: 2rem;
+            color: #ef4444; /* Red */
+            pointer-events: none;
+            z-index: 9999;
+            animation: floatUpMiss 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            text-shadow: 0px 3px 6px rgba(0,0,0,0.8);
+        }
+
+        @keyframes floatUpMiss {
+            0% { transform: translate(-50%, -50%) scale(0.5) rotate(-10deg); opacity: 1; }
+            50% { transform: translate(-50%, -60px) scale(1.5) rotate(10deg); opacity: 1; }
+            100% { transform: translate(-50%, -100px) scale(1) rotate(0deg); opacity: 0; }
+        }
 
         /* New Shake Animation for engagement */
         .shake {
@@ -201,16 +219,20 @@
             
             <div class="flex justify-between items-center w-full max-w-sm mb-3 px-2 bg-white/40 rounded-xl p-2 shadow-sm backdrop-blur-sm">
                 <div class="flex flex-col items-center flex-1">
-                    <span class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">High Score</span>
-                    <span id="highScore" class="text-purple-600 text-xl font-black">0</span>
+                    <span class="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold">High Score</span>
+                    <span id="highScore" class="text-purple-600 text-lg sm:text-xl font-black">0</span>
                 </div>
                 <div class="flex flex-col items-center flex-1 border-x border-gray-300/50">
-                    <span class="text-xs uppercase tracking-wider text-gray-500 font-bold">Score</span>
-                    <span id="score" class="text-blue-600 text-3xl font-black">0</span>
+                    <span class="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold">Score</span>
+                    <span id="score" class="text-blue-600 text-2xl sm:text-3xl font-black">0</span>
+                </div>
+                <div class="flex flex-col items-center flex-1 border-r border-gray-300/50">
+                    <span class="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold">Time</span>
+                    <span id="time" class="text-red-500 text-2xl sm:text-3xl font-black">0</span>
                 </div>
                 <div class="flex flex-col items-center flex-1">
-                    <span class="text-xs uppercase tracking-wider text-gray-500 font-bold">Time</span>
-                    <span id="time" class="text-red-500 text-3xl font-black">0</span>
+                    <span class="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold">Lives</span>
+                    <span id="livesDisplay" class="text-red-500 text-sm sm:text-lg tracking-tighter" style="letter-spacing: -2px;">❤️❤️❤️❤️❤️</span>
                 </div>
             </div>
             
@@ -286,6 +308,7 @@
             const scoreBoard = document.querySelector('#score');
             const highScoreDisplay = document.querySelector('#highScore');
             const timeDisplay = document.querySelector('#time');
+            const livesDisplay = document.querySelector('#livesDisplay');
             const startBtn = document.querySelector('#startBtn');
             const pauseBtn = document.querySelector('#pauseBtn');
             const restartBtn = document.querySelector('#restartBtn');
@@ -337,13 +360,15 @@
             let score = 0;
             let highScore = 0;
             let timeLeft = 0;
+            let lives = 5;
             let currentMoleTimeout;
             let countdownInterval;
             let currentDifficulty = 'normal';
 
+            // Much faster timing making the game harder!
             const settings = {
-                normal: { duration: 30, minTime: 600, maxTime: 1200, specialChance: 0.15 },
-                hard: { duration: 20, minTime: 300, maxTime: 700, specialChance: 0.30 }
+                normal: { duration: 30, minTime: 400, maxTime: 1000, specialChance: 0.15 },
+                hard: { duration: 20, minTime: 250, maxTime: 650, specialChance: 0.30 }
             };
 
             const normalSynth = new Tone.MembraneSynth().toDestination();
@@ -354,12 +379,22 @@
                 oscillator: { type: "sine" },
                 envelope: { attack: 0.1, decay: 0.2, sustain: 1, release: 1 }
             }).toDestination();
+            
+            const missSynth = new Tone.MembraneSynth({ 
+                pitchDecay: 0.2, 
+                octaves: 4, 
+                oscillator: { type: "square" }, 
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 } 
+            }).toDestination();
 
             function playNormalSound() {
                 if (Tone.context.state === 'running') normalSynth.triggerAttackRelease("C2", "8n", "+0.05", 0.8);
             }
             function playSpecialSound() {
                 if (Tone.context.state === 'running') specialSynth.triggerAttackRelease(["E4", "G4", "C5"], "8n", "+0.05", 0.5);
+            }
+            function playMissSound() {
+                if (Tone.context.state === 'running') missSynth.triggerAttackRelease("G2", "8n", "+0.05", 0.3);
             }
             function playEndSound() {
                 if (Tone.context.state === 'running') gameOverSynth.triggerAttackRelease("C3", "1n");
@@ -458,6 +493,8 @@
                 timeUp = false;
                 isPaused = false;
                 score = 0;
+                lives = 5;
+                updateLivesDisplay();
                 timeLeft = settings[currentDifficulty].duration;
                 
                 startBtn.disabled = true;
@@ -486,8 +523,15 @@
                     }
                 }, 1000);
             }
+            
+            function updateLivesDisplay() {
+                let hearts = "";
+                for(let i = 0; i < lives; i++) hearts += "❤️";
+                for(let i = lives; i < 5; i++) hearts += "🖤"; // Turn black when lost
+                livesDisplay.textContent = hearts;
+            }
 
-            function endGame(showModal = true, manuallyEnded = false) {
+            function endGame(showModal = true, manuallyEnded = false, died = false) {
                 timeUp = true;
                 clearInterval(countdownInterval);
                 clearTimeout(currentMoleTimeout);
@@ -516,7 +560,10 @@
                     playEndSound();
                     
                     // Dynamic text replacement based on how the game ended
-                    if (manuallyEnded) {
+                    if (died) {
+                        endTitle.textContent = "Kuruvi Mandai! 🐦";
+                        scoreTextContainer.innerHTML = `kannadi potu vilayadu! 5 lives gaali.<br>nee adichathu verum <span id="finalScore" class="font-black text-red-500 text-6xl my-2 block">${score}</span> thadava thaan`;
+                    } else if (manuallyEnded) {
                         endTitle.textContent = "bayathagoli !";
                         scoreTextContainer.innerHTML = `ena <br><span id="finalScore" class="font-black text-blue-600 text-6xl my-2 block">${score}</span> thadava adichathukai bayanthu end koduthuta`;
                     } else {
@@ -601,10 +648,65 @@
                 }, 600);
             }
 
+            function missClick(e) {
+                // Ignore if game isn't running actively
+                if (timeUp || isPaused || !startBtn.disabled) return; 
+                
+                const hole = e.currentTarget;
+                if (hole.classList.contains('up')) return; // Valid mole is here, let whack() handle it!
+                
+                // Debounce to prevent touch+mouse double penalties on the same tap
+                const now = Date.now();
+                if (hole.dataset.lastMiss && (now - parseInt(hole.dataset.lastMiss) < 300)) return;
+                hole.dataset.lastMiss = now;
+                
+                lives--;
+                updateLivesDisplay();
+                playMissSound();
+                
+                // Funny text popup
+                const missText = document.createElement('div');
+                const funnyWords = ["Ayyo!", "Miss!", "Kaathu!", "Ennada!", "Loosu!"];
+                missText.textContent = funnyWords[Math.floor(Math.random() * funnyWords.length)];
+                missText.classList.add('miss-text');
+                
+                let x = e.clientX;
+                let y = e.clientY;
+                
+                if (e.touches && e.touches.length > 0) {
+                    x = e.touches[0].clientX;
+                    y = e.touches[0].clientY;
+                } else if (!x || !y) {
+                    const rect = hole.getBoundingClientRect();
+                    x = rect.left + rect.width / 2;
+                    y = rect.top + rect.height / 2;
+                }
+
+                missText.style.left = `${x}px`;
+                missText.style.top = `${y}px`;
+                document.body.appendChild(missText);
+                
+                setTimeout(() => missText.remove(), 800);
+                
+                // Screen shake on miss
+                const board = document.querySelector('.game-board');
+                board.classList.remove('shake');
+                void board.offsetWidth;
+                board.classList.add('shake');
+                
+                if (lives <= 0) {
+                    endGame(true, false, true); // (showModal, manuallyEnded, died)
+                }
+            }
+
             holes.forEach(hole => {
                 const mole = hole.querySelector('.mole');
                 mole.addEventListener('mousedown', whack);
                 mole.addEventListener('touchstart', whack, {passive: true});
+                
+                // Add the new miss listener to the background hole
+                hole.addEventListener('mousedown', missClick);
+                hole.addEventListener('touchstart', missClick, {passive: true});
             });
 
             startBtn.addEventListener('click', startGame);
@@ -622,6 +724,8 @@
                 messageBox.classList.add('hidden');
                 scoreBoard.textContent = '0';
                 timeDisplay.textContent = settings[currentDifficulty].duration;
+                lives = 5;
+                updateLivesDisplay();
             });
 
             // Handle Splash Screen Removal
