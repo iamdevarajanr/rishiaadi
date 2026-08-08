@@ -1,25 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rishi a Adi!</title>
-    <!-- Tailwind for layout, Tone.js for sounds -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    <!-- Funny, bouncy font for the cartoon theme -->
-    <link href="https://fonts.googleapis.com/css2?family=DynaPuff:wght@400;600;700&display=swap" rel="stylesheet">
-    
+<!-- ... existing code ... -->
     <style>
         :root {
             --bg-color: #fef08a; /* Playful yellow */
         }
-        body { margin: 0; padding: 0; background-color: var(--bg-color); color: #333; }
+        body { 
+            margin: 0; padding: 0; background-color: var(--bg-color); color: #333; 
+            display: flex; align-items: center; justify-content: center; min-height: 100vh;
+        }
 
         #rishi-game-container {
             font-family: 'DynaPuff', cursive;
             background: linear-gradient(135deg, #a7f3d0 0%, #fef08a 100%);
-            min-height: 100dvh;
+            min-height: 100vh;
+            height: 100%;
             width: 100vw;
             max-width: 600px;
             margin: 0 auto;
@@ -32,331 +25,32 @@
             flex-direction: column;
         }
 
+        /* Make it look like a sleek app interface on PC screens */
+        @media (min-width: 600px) {
+            #rishi-game-container {
+                min-height: auto;
+                height: 92vh;
+                border-radius: 24px;
+                border: 8px solid white;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            }
+        }
+
         #splashScreen {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle, #fde047 0%, #f97316 100%);
-            z-index: 100000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.8s ease-out;
-        }
+<!-- ... existing code ... -->
+```
 
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            width: 100%;
-            padding: 1rem;
-            flex-grow: 1;
-            align-content: center;
-        }
-
-        .hole {
-            aspect-ratio: 1 / 1;
-            background: radial-gradient(circle, #78350f 30%, #451a03 100%);
-            border-radius: 50%;
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 10px 15px rgba(0, 0, 0, 0.9), 0 6px 0px rgba(0,0,0,0.2);
-            border: 6px solid #b45309; /* Cartoony thick border */
-            cursor: pointer;
-        }
-
-        .mole {
-            width: 100%;
-            height: auto;
-            position: absolute;
-            bottom: -100%;
-            left: 50%;
-            transform: translateX(-50%);
-            transition: bottom 0.15s ease-out;
-            border-radius: 50%;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.6);
-            pointer-events: none; 
-        }
-
-        .hole.up .mole {
-            bottom: 0%;
-            transition: bottom 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: auto;
-            cursor: pointer;
-        }
-
-        .mole.special {
-            box-shadow: 0 0 25px 10px #f6e05e;
-            border: 4px solid #f6e05e;
-            background-color: #fffbeb;
-        }
-
-        .mole.spoof {
-            box-shadow: 0 0 25px 10px #ef4444;
-            border: 4px solid #ef4444;
-            background-color: #fef2f2;
-        }
-
-        .hit-text {
-            position: fixed;
-            font-weight: 900;
-            font-size: 3.5rem;
-            pointer-events: none;
-            z-index: 9999;
-            animation: bounceUp 0.6s ease-out forwards;
-            text-shadow: 0px 4px 0px rgba(0,0,0,0.3), 0px 0px 10px rgba(255,255,255,0.8);
-            white-space: nowrap;
-        }
-        .hit-normal { color: #10b981; } 
-        .hit-special { color: #f59e0b; font-size: 4.5rem;} 
-        .hit-spoof { color: #ef4444; font-size: 3rem; } 
-        .hit-miss { color: #dc2626; font-size: 2.5rem; text-shadow: 0px 3px 0px rgba(0,0,0,0.5); }
-
-        @keyframes bounceUp {
-            0% { transform: translate(-50%, -50%) scale(0.3) rotate(-10deg); opacity: 1; }
-            40% { transform: translate(-50%, -90px) scale(1.3) rotate(10deg); opacity: 1; }
-            60% { transform: translate(-50%, -80px) scale(1.1) rotate(-5deg); opacity: 1; }
-            100% { transform: translate(-50%, -140px) scale(1) rotate(0deg); opacity: 0; }
-        }
-
-        @keyframes shake {
-            0% { transform: translate(2px, 2px) rotate(0deg); }
-            10% { transform: translate(-2px, -4px) rotate(-2deg); }
-            20% { transform: translate(-6px, 0px) rotate(2deg); }
-            30% { transform: translate(6px, 4px) rotate(0deg); }
-            40% { transform: translate(2px, -2px) rotate(2deg); }
-            50% { transform: translate(-2px, 4px) rotate(-2deg); }
-            60% { transform: translate(-6px, 2px) rotate(0deg); }
-            70% { transform: translate(6px, 2px) rotate(-2deg); }
-            80% { transform: translate(-2px, -2px) rotate(2deg); }
-            90% { transform: translate(2px, 4px) rotate(0deg); }
-            100% { transform: translate(2px, -4px) rotate(-2deg); }
-        }
-        .shake {
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-        }
-
-        #hammer {
-            position: fixed;
-            pointer-events: none;
-            z-index: 10000;
-            font-size: 5rem;
-            transform-origin: bottom right; 
-            transform: translate(-30%, -30%) rotate(0deg); 
-            transition: transform 0.05s ease-out;
-            display: none;
-            filter: drop-shadow(6px 8px 10px rgba(0,0,0,0.6));
-        }
-        
-        #hammer.strike {
-            transform: translate(-40%, -20%) rotate(-55deg);
-        }
-
-        @media (pointer: coarse) {
-            #hammer { display: none !important; }
-        }
-        @media (pointer: fine) {
-            body, #rishi-game-container, .mole, .hole { cursor: none !important; }
-            .btn, button { cursor: pointer !important; }
-            #hammer { display: block; }
-        }
-    </style>
-</head>
-<body>
-
-    <div id="rishi-game-container">
-        
-        <div id="splashScreen">
-            <h1 class="text-6xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600 drop-shadow-md text-center leading-tight transform -rotate-2">
-                Rishi<br>a<br>Adi!
-            </h1>
-            <div class="relative w-48 h-48 rounded-full border-8 border-white shadow-[0_0_30px_rgba(255,255,255,0.8)] bg-white overflow-hidden mb-8 animate-pulse">
-                <img id="splashLogo" src="" alt="Logo" class="w-full h-full object-cover">
-            </div>
-            <p class="text-red-700 font-bold tracking-widest uppercase animate-bounce text-xl">Loading Game...</p>
-        </div>
-
-        <button id="fullscreenBtn" class="absolute top-4 right-4 z-50 bg-white/80 hover:bg-white text-gray-800 p-2.5 rounded-xl shadow-lg backdrop-blur-sm transition-all active:scale-95 cursor-pointer border border-gray-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
-        </button>
-
-        <div class="w-full px-4 pt-6 pb-2 z-20 flex flex-col items-center">
-            
-            <div class="flex justify-between items-center w-full max-w-sm mb-4">
-                <div class="flex flex-col items-start bg-white/80 px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
-                    <span class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">High Score</span>
-                    <span id="highScore" class="text-orange-500 text-xl font-black">0</span>
-                </div>
-                <div class="flex flex-col items-center">
-                    <span class="text-[10px] uppercase tracking-wider text-gray-600 font-bold mb-1">Lives</span>
-                    <div id="livesDisplay" class="text-xl flex gap-1">❤️❤️❤️❤️❤️</div>
-                </div>
-            </div>
-
-            <div class="flex justify-between items-center w-full max-w-sm bg-white/95 p-4 rounded-3xl shadow-xl border-4 border-white mb-4 transform rotate-1">
-                <div class="flex flex-col">
-                    <span class="text-xs uppercase tracking-wider text-gray-400 font-bold">Score</span>
-                    <span id="score" class="text-blue-500 text-4xl font-black">0</span>
-                </div>
-                
-                <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600 leading-none text-center hidden sm:block transform -rotate-3">Rishi a Adi!</h1>
-
-                <div class="flex flex-col items-end">
-                    <span class="text-xs uppercase tracking-wider text-gray-400 font-bold">Time</span>
-                    <span id="time" class="text-red-500 text-4xl font-black">0</span>
-                </div>
-            </div>
-            
-            <div class="flex gap-2 w-full max-w-sm mb-3">
-                <button id="btn-normal" class="diff-btn flex-1 py-2 rounded-xl font-bold transition-all bg-blue-500 text-white shadow-md border-b-4 border-blue-700" data-diff="normal">Normal</button>
-                <button id="btn-hard" class="diff-btn flex-1 py-2 rounded-xl font-bold transition-all bg-white text-gray-500 border-b-4 border-gray-200" data-diff="hard">Hard Mode</button>
-            </div>
-
-            <div class="flex gap-2 w-full max-w-sm">
-                <button id="startBtn" class="btn flex-[2] bg-gradient-to-b from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white font-black py-3 px-4 rounded-xl shadow-lg transform transition active:scale-95 text-lg uppercase tracking-wide border-b-4 border-emerald-700">
-                    Start Game
-                </button>
-                <button id="pauseBtn" disabled class="btn flex-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 px-2 rounded-xl shadow-lg transition active:scale-95 text-sm uppercase flex items-center justify-center gap-1 border-b-4 border-yellow-600 opacity-50 cursor-not-allowed">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause
-                </button>
-                <button id="endBtn" disabled class="btn flex-1 bg-red-400 hover:bg-red-500 text-white font-bold py-3 px-2 rounded-xl shadow-lg transition active:scale-95 text-sm uppercase flex items-center justify-center border-b-4 border-red-600 opacity-50 cursor-not-allowed">
-                    End
-                </button>
-            </div>
-        </div>
-
-        <div class="game-board" id="gameBoard">
-            <div class="hole" data-index="0"><img class="mole" alt="Mole" draggable="false" src=""></div>
-            <div class="hole" data-index="1"><img class="mole" alt="Mole" draggable="false" src=""></div>
-            <div class="hole" data-index="2"><img class="mole" alt="Mole" draggable="false" src=""></div>
-            <div class="hole" data-index="3"><img class="mole" alt="Mole" draggable="false" src=""></div>
-            <div class="hole" data-index="4"><img class="mole" alt="Mole" draggable="false" src=""></div>
-            <div class="hole" data-index="5"><img class="mole" alt="Mole" draggable="false" src=""></div>
-            <div class="hole" data-index="6"><img class="mole" alt="Mole" draggable="false" src=""></div>
-            <div class="hole" data-index="7"><img class="mole" alt="Mole" draggable="false" src=""></div>
-            <div class="hole" data-index="8"><img class="mole" alt="Mole" draggable="false" src=""></div>
-        </div>
-
-        <div id="hammer">🔨</div>
-
-        <div id="messageBox" class="absolute inset-0 bg-yellow-400/90 flex flex-col items-center justify-center hidden z-50 backdrop-blur-md px-4 text-center">
-            
-            <div class="relative w-40 h-40 rounded-full border-8 border-white shadow-[0_0_20px_rgba(0,0,0,0.2)] bg-white overflow-hidden mb-6 mt-[-60px] transform rotate-3">
-                <img id="modalLogo" src="" alt="Logo" class="w-full h-full object-cover">
-            </div>
-
-            <h2 id="msgTitle" class="text-4xl md:text-5xl font-black text-red-600 mb-2 tracking-tight drop-shadow-sm">Time's Up!</h2>
-            
-            <p id="scoreTextContainer" class="text-gray-800 mb-8 text-xl max-w-sm leading-relaxed font-bold">
-                <span id="txtBeforeScore">You scored</span> <br>
-                <span id="finalScore" class="font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 text-7xl my-2 block drop-shadow-md transform -rotate-3 scale-110"></span> 
-                <span id="txtAfterScore">points!</span>
-            </p>
-            
-            <button id="closeMsgBtn" class="btn w-full max-w-xs bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-black py-4 px-4 rounded-xl transition text-lg uppercase tracking-wider shadow-xl active:scale-95 border-b-4 border-red-700">
-                Play Again
-            </button>
-        </div>
-
-        <script>
-            (() => {
-                const NORMAL_IMG_URL = 'https://lh3.googleusercontent.com/d/1ROK5CKKC-Ae9s0vsbieqHafEQriSCeFz';
-                const SPECIAL_IMG_URL = 'https://lh3.googleusercontent.com/d/1gtZY6ewjDZdUVvURLSBCsZ_hA0gVNPYH';
-                const SPOOF_IMG_URL = 'https://lh3.googleusercontent.com/d/1gaLbrDvBw-rkPz8CNW5izBFSRFMuwXMN';
-                const FALLBACK_IMG = 'https://placehold.co/150x150/4a5568/ffffff?text=Face';
-
-                const img1 = new Image(); img1.src = NORMAL_IMG_URL;
-                const img2 = new Image(); img2.src = SPECIAL_IMG_URL;
-                const img3 = new Image(); img3.src = SPOOF_IMG_URL;
-
-                // DOM Elements
-                const splashScreen = document.getElementById('splashScreen');
-                const splashLogo = document.getElementById('splashLogo');
-                const modalLogo = document.getElementById('modalLogo');
-                const holes = document.querySelectorAll('.hole');
-                const scoreBoard = document.querySelector('#score');
-                const highScoreBoard = document.querySelector('#highScore');
-                const timeDisplay = document.querySelector('#time');
-                const livesDisplay = document.querySelector('#livesDisplay');
-                
-                const startBtn = document.querySelector('#startBtn');
-                const pauseBtn = document.querySelector('#pauseBtn');
-                const endBtn = document.querySelector('#endBtn');
-                
-                const messageBox = document.querySelector('#messageBox');
-                const msgTitle = document.querySelector('#msgTitle');
-                const finalScoreDisplay = document.querySelector('#finalScore');
-                const txtBeforeScore = document.querySelector('#txtBeforeScore');
-                const txtAfterScore = document.querySelector('#txtAfterScore');
-                const closeMsgBtn = document.querySelector('#closeMsgBtn');
-                
-                const diffBtns = document.querySelectorAll('.diff-btn');
-                const hammer = document.getElementById('hammer');
-                const fullscreenBtn = document.getElementById('fullscreenBtn');
-                const gameContainer = document.getElementById('rishi-game-container');
-
-                let timeUp = false;
-                let isPaused = false;
-                let score = 0;
-                let highScore = 0;
-                let timeLeft = 0;
-                let lives = 5;
-                let masterLoopTimeout;
-                let activeTimeouts = new Set();
-                let countdownInterval;
-                let currentDifficulty = 'normal';
-                let lastSpoofWord = "";
-
-                const settings = {
-                    normal: { duration: 30, minTime: 500, maxTime: 1000, specialChance: 0.15, spoofChance: 0, multiChance: 0 },
-                    hard: { duration: 25, minTime: 300, maxTime: 650, specialChance: 0.30, spoofChance: 0.20, multiChance: 0.7 }
-                };
-
-                // New Funny Sound Engine
-                const normalSynth = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 } }).toDestination();
-                const specialSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "square" } }).toDestination();
-                const spoofSynth = new Tone.MembraneSynth({ pitchDecay: 0.05, octaves: 10, oscillator: { type: "sine" } }).toDestination();
-                const missSynth = new Tone.Synth({ oscillator: { type: "fmsawtooth", modulationType: "triangle", harmonicity: 0.2 } }).toDestination();
-                const gameOverSynth = new Tone.Synth({ oscillator: { type: "amtriangle" } }).toDestination();
-
-                function playNormalSound() { 
-                    if (Tone.context.state === 'running') {
-                        const now = Tone.now();
-                        normalSynth.triggerAttackRelease("C5", "8n", now);
-                        normalSynth.frequency.rampTo("C6", 0.1, now); // Funny Boing!
-                    }
-                }
-                function playSpecialSound() { if (Tone.context.state === 'running') specialSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "8n", "+0.05", 0.3); } 
-                function playSpoofSound() { if (Tone.context.state === 'running') spoofSynth.triggerAttackRelease("C2", "2n", "+0.05", 0.8); } 
-                function playMissSound() { 
-                    if (Tone.context.state === 'running') {
-                        const now = Tone.now();
-                        missSynth.triggerAttackRelease("C2", "4n", now);
-                        missSynth.frequency.rampTo("C1", 0.3, now); // Sad squelch slide
-                    }
-                }
-                function playEndSound() { if (Tone.context.state === 'running') gameOverSynth.triggerAttackRelease("C2", "2n", "+0.05", 0.5); }
-
-                setTimeout(() => {
-                    splashLogo.src = SPECIAL_IMG_URL;
-                    modalLogo.src = SPECIAL_IMG_URL;
-                    splashScreen.style.opacity = '0';
-                    setTimeout(() => { splashScreen.style.display = 'none'; }, 800);
-                }, 1500);
-
-                holes.forEach(hole => {
-                    const img = hole.querySelector('.mole');
-                    img.src = NORMAL_IMG_URL;
-                    img.onerror = () => { img.src = FALLBACK_IMG; };
-                });
-
+### 2. The Fullscreen Fix (For Desktop Displays)
+```html:Rishi a Adi!:index.html
+<!-- ... existing code ... -->
                 timeDisplay.textContent = settings[currentDifficulty].duration;
 
                 fullscreenBtn.addEventListener('click', async () => {
                     try {
                         if (!document.fullscreenElement) {
-                            if (gameContainer.requestFullscreen) await gameContainer.requestFullscreen();
-                            else if (gameContainer.webkitRequestFullscreen) await gameContainer.webkitRequestFullscreen();
+                            // Target the whole screen rather than just the game container so the styling stays perfect on PC
+                            if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+                            else if (document.documentElement.webkitRequestFullscreen) await document.documentElement.webkitRequestFullscreen();
                         } else {
                             if (document.exitFullscreen) await document.exitFullscreen();
                             else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
@@ -367,158 +61,19 @@
                 });
 
                 document.addEventListener('mousemove', (e) => {
-                    if(window.matchMedia("(pointer: fine)").matches) {
-                        hammer.style.left = e.clientX + 'px';
-                        hammer.style.top = e.clientY + 'px';
-                    }
-                });
+<!-- ... existing code ... -->
+```
 
-                const strikeHammer = () => hammer.classList.add('strike');
-                const liftHammer = () => hammer.classList.remove('strike');
-
-                document.addEventListener('mousedown', strikeHammer);
-                document.addEventListener('mouseup', liftHammer);
-                document.addEventListener('touchstart', strikeHammer, {passive: true});
-                document.addEventListener('touchend', liftHammer, {passive: true});
-
-                diffBtns.forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        if (!timeUp && startBtn.disabled) return; 
-                        
-                        diffBtns.forEach(b => {
-                            b.className = 'diff-btn flex-1 py-2 rounded-xl font-bold transition-all bg-white text-gray-500 border-b-4 border-gray-200';
-                        });
-                        
-                        const target = e.target;
-                        target.className = 'diff-btn flex-1 py-2 rounded-xl font-bold transition-all bg-blue-500 text-white shadow-md border-b-4 border-blue-700';
-                        
-                        currentDifficulty = target.dataset.diff;
-                        timeDisplay.textContent = settings[currentDifficulty].duration;
-                    });
-                });
-
-                function randomTime(min, max) {
-                    return Math.round(Math.random() * (max - min) + min);
-                }
-
-                function updateLivesDisplay() {
-                    let hearts = '';
-                    for(let i=0; i<5; i++) hearts += (i < lives) ? '❤️' : '🖤';
-                    livesDisplay.textContent = hearts;
-                }
-
-                function spawnMole() {
-                    if (timeUp || isPaused) return;
-
-                    const availableHoles = Array.from(holes).filter(h => !h.classList.contains('up'));
-                    if (availableHoles.length === 0) return;
-
-                    const hole = availableHoles[Math.floor(Math.random() * availableHoles.length)];
-                    const moleImg = hole.querySelector('.mole');
-                    const time = randomTime(settings[currentDifficulty].minTime, settings[currentDifficulty].maxTime);
-                    
-                    const isSpecial = Math.random() < settings[currentDifficulty].specialChance;
-                    const isSpoof = Math.random() < settings[currentDifficulty].spoofChance;
-                    
-                    if (isSpoof && currentDifficulty === 'hard') {
-                        moleImg.src = SPOOF_IMG_URL;
-                        moleImg.dataset.points = "-5";
-                        moleImg.className = 'mole spoof';
-                    } else if (isSpecial) {
-                        moleImg.src = SPECIAL_IMG_URL;
-                        moleImg.dataset.points = "2";
-                        moleImg.className = 'mole special';
-                    } else {
-                        moleImg.src = NORMAL_IMG_URL;
-                        moleImg.dataset.points = "1";
-                        moleImg.className = 'mole';
-                    }
-
-                    hole.classList.add('up');
-                    
-                    const timeoutId = setTimeout(() => {
-                        hole.classList.remove('up');
-                        activeTimeouts.delete(timeoutId);
-                    }, time);
-                    activeTimeouts.add(timeoutId);
-                }
-
-                function peepLoop() {
-                    if (timeUp || isPaused) return;
-                    
-                    spawnMole();
-                    
-                    if (Math.random() < settings[currentDifficulty].multiChance) {
-                        spawnMole();
-                        if (Math.random() < 0.3) spawnMole(); 
-                    }
-
-                    const loopTime = randomTime(settings[currentDifficulty].minTime, settings[currentDifficulty].maxTime) * 0.8;
-                    masterLoopTimeout = setTimeout(peepLoop, loopTime);
-                }
-
-                async function startGame() {
-                    if (!timeUp && startBtn.disabled) return; 
-                    
-                    if (Tone.context.state !== 'running') await Tone.start();
-
-                    scoreBoard.textContent = 0;
-                    timeUp = false;
-                    isPaused = false;
-                    score = 0;
-                    lives = 5;
-                    updateLivesDisplay();
-                    
-                    startBtn.disabled = true;
-                    startBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    
-                    pauseBtn.disabled = false;
-                    pauseBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    pauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause';
-                    
-                    endBtn.disabled = false;
-                    endBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    
-                    timeLeft = settings[currentDifficulty].duration;
-                    timeDisplay.textContent = timeLeft;
-                    timeDisplay.classList.remove('animate-pulse', 'text-red-600');
-                    
-                    peepLoop();
-
-                    clearInterval(countdownInterval);
-                    countdownInterval = setInterval(() => {
-                        if(!isPaused) {
-                            timeLeft--;
-                            timeDisplay.textContent = timeLeft;
-                            if(timeLeft <= 5 && timeLeft > 0) {
-                                timeDisplay.classList.add('animate-pulse', 'text-red-600');
-                            }
-                            if(timeLeft <= 0) {
-                                endGame('timeout');
-                            }
-                        }
-                    }, 1000);
-                }
-
-                function togglePause() {
-                    if (timeUp) return;
-                    isPaused = !isPaused;
-                    
-                    if (isPaused) {
-                        clearTimeout(masterLoopTimeout);
-                        for (let t of activeTimeouts) clearTimeout(t);
-                        pauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Resume';
-                        pauseBtn.classList.replace('bg-yellow-400', 'bg-blue-500');
-                        pauseBtn.classList.replace('border-yellow-600', 'border-blue-700');
-                        pauseBtn.classList.replace('text-yellow-900', 'text-white');
-                        holes.forEach(h => h.classList.remove('up')); 
-                    } else {
-                        pauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause';
-                        pauseBtn.classList.replace('bg-blue-500', 'bg-yellow-400');
-                        pauseBtn.classList.replace('border-blue-700', 'border-yellow-600');
-                        pauseBtn.classList.replace('text-white', 'text-yellow-900');
+### 3. The Ultimate Tanglish Randomizer
+```html:Rishi a Adi!:index.html
+<!-- ... existing code ... -->
                         peepLoop();
                     }
+                }
+
+                // New Helper for picking random phrases
+                function getRandom(arr) { 
+                    return arr[Math.floor(Math.random() * arr.length)]; 
                 }
 
                 function endGame(reason = 'timeout') {
@@ -546,25 +101,55 @@
 
                     playEndSound();
 
-                    if (reason === 'died') {
-                        msgTitle.textContent = "Sethuta! 💔";
-                        msgTitle.className = "text-4xl md:text-5xl font-black text-red-600 mb-2 tracking-tight drop-shadow-sm";
-                        txtBeforeScore.textContent = "5 thadava miss pannita! Total ah";
-                        txtAfterScore.textContent = "adichiruka. Adika therila!";
-                        closeMsgBtn.textContent = "Mudicha ena thirumba adi";
+                    // Randomized 10 variations for Play Again texts
+                    const replayTexts = [
+                        "Mudicha ena thirumba adi", "Innoru match polama?", "Dhairiyam irukka thirumba va", 
+                        "Adichathu pothuma? Innum adi!", "Thirumba adipiya ena?", "Vaa da paathukalam!", 
+                        "Innoru round podalama?", "Thilla iruntha start pannu!", "Meendum oru aatam!", "Once more vaa!"
+                    ];
+                    closeMsgBtn.textContent = getRandom(replayTexts);
+
+                    let tColor;
+
+                    if (score >= 40) {
+                        const titles = ["Periya Pudingi Than! 👑", "Thalaivaa! 🔥", "Verithanam! 💥", "Sema Mass! 🎇", "Nee Vera Level! 🚀", "Gethu Kaatita! 🥶"];
+                        const befores = ["Sema dhool! Nee Rishi ah", "Pichita po! Oru", "Arakka thaan! Gethaa", "Vaazhthukkal! Tharamana", "Adiyathi! Total ah"];
+                        const afters = ["thadava adichu thamsam pannita!", "mura adichu mas pannita!", "thadava sethara vituta!", "adi adichu alara vituta!", "thadava thuvamsam pannita!"];
+                        
+                        msgTitle.textContent = getRandom(titles);
+                        tColor = 'text-yellow-600';
+                        txtBeforeScore.textContent = getRandom(befores);
+                        txtAfterScore.textContent = getRandom(afters);
+                    } else if (reason === 'died') {
+                        const titles = ["Sethuta! 💔", "Sothappita! 🤦‍♂️", "Gaali! ☠️", "Aiyo Paavam! 🥺", "Game Over Da! 🛑", "Kaanama Poita! 👻"];
+                        const befores = ["5 thadava miss pannita! Total ah", "Aasaya koodithu aappu vechita! Verum", "Focus pannu boss! Nee", "Adika therila! Verum", "Kandravi! Total ah"];
+                        const afters = ["thadava thaan adichiruka.", "point thaan eduthuka.", "thadava adichu sothapita.", "mura thaan hit panniruka.", "point eduthu gaali aayita."];
+                        
+                        msgTitle.textContent = getRandom(titles);
+                        tColor = 'text-red-600';
+                        txtBeforeScore.textContent = getRandom(befores);
+                        txtAfterScore.textContent = getRandom(afters);
                     } else if (reason === 'ended') {
-                        msgTitle.textContent = "Bayathagoli ! 🤣";
-                        msgTitle.className = "text-4xl md:text-5xl font-black text-blue-600 mb-2 tracking-tight drop-shadow-sm";
-                        txtBeforeScore.textContent = "Ena";
-                        txtAfterScore.textContent = "thadava adichathukai bayanthu end koduthuta.";
-                        closeMsgBtn.textContent = "Mudicha ena thirumba adi";
+                        const titles = ["Bayathagoli ! 🤣", "Oditaya! 🏃‍♂️", "Paathiyil escape! 🐢", "Enna da puzhuthita! 🤨", "Bhayam ah! 😆"];
+                        const befores = ["Ena", "Verum", "Nee", "Aaha", "Sari vidu,"];
+                        const afters = ["thadava adichathukai bayanthu end koduthuta.", "point eduthutu paathiyil odita.", "thadava adichutu escape aayita.", "point la bayanthu back adichita.", "thadava hit pannitu quit pannita."];
+                        
+                        msgTitle.textContent = getRandom(titles);
+                        tColor = 'text-blue-600';
+                        txtBeforeScore.textContent = getRandom(befores);
+                        txtAfterScore.textContent = getRandom(afters);
                     } else { // timeout
-                        msgTitle.textContent = "Nee adichathu pothum!";
-                        msgTitle.className = "text-4xl md:text-5xl font-black text-purple-600 mb-2 tracking-tight drop-shadow-sm";
-                        txtBeforeScore.textContent = "Nee Rishi ah";
-                        txtAfterScore.textContent = "thadava adichiruka!";
-                        closeMsgBtn.textContent = "Mudicha ena thirumba adi";
+                        const titles = ["Nee adichathu pothum!", "Time Up Da!", "Mudinchu!", "Nalla Try!", "Pothum Pothum!"];
+                        const befores = ["Nee Rishi ah", "Total ah", "Time aachu! Nee", "Paravala,", "Super! Nee"];
+                        const afters = ["thadava adichiruka!", "mura nallapadiya adichiruka.", "point thaan eduthiruka.", "point collect pannita.", "thadava hit panniruka."];
+                        
+                        msgTitle.textContent = getRandom(titles);
+                        tColor = 'text-purple-600';
+                        txtBeforeScore.textContent = getRandom(befores);
+                        txtAfterScore.textContent = getRandom(afters);
                     }
+
+                    msgTitle.className = `text-3xl md:text-5xl font-black ${tColor} mb-2 tracking-tight drop-shadow-sm px-2 text-balance leading-tight`;
 
                     setTimeout(() => {
                         finalScoreDisplay.textContent = score;
@@ -573,111 +158,4 @@
                 }
 
                 function handleBoardClick(e) {
-                    if (timeUp || isPaused) return;
-
-                    let target = e.target;
-                    let hole = target.closest('.hole');
-                    
-                    if (!hole) return;
-
-                    let x = e.clientX;
-                    let y = e.clientY;
-                    if (e.touches && e.touches.length > 0) {
-                        x = e.touches[0].clientX;
-                        y = e.touches[0].clientY;
-                    } else if (!x || !y) {
-                        const rect = hole.getBoundingClientRect();
-                        x = rect.left + rect.width / 2;
-                        y = rect.top + rect.height / 2;
-                    }
-
-                    if (hole.classList.contains('up')) {
-                        const moleImg = hole.querySelector('.mole');
-                        const points = parseInt(moleImg.dataset.points) || 1;
-                        score += points;
-                        scoreBoard.textContent = score;
-                        
-                        hole.classList.remove('up'); 
-
-                        const hitText = document.createElement('div');
-                        hitText.classList.add('hit-text');
-                        
-                        if (points > 1) {
-                            hitText.textContent = `+${points}`;
-                            playSpecialSound();
-                            hitText.classList.add('hit-special');
-                            gameContainer.classList.remove('shake');
-                            void gameContainer.offsetWidth; 
-                            gameContainer.classList.add('shake');
-                        } else if (points < 0) {
-                            const spoofWords = ["-5 Aiyo!", "-5 Venaam!", "-5 Pochu!", "-5 Goyyale!", "-5 Thappu!", "-5 Mokka!", "-5 Paathu adi!", "-5 Sothappal!", "-5 Venna!", "-5 Kandravi!"];
-                            let word = lastSpoofWord;
-                            
-                            while (word === lastSpoofWord) {
-                                word = spoofWords[Math.floor(Math.random() * spoofWords.length)];
-                            }
-                            lastSpoofWord = word;
-                            
-                            hitText.textContent = word;
-                            playSpoofSound();
-                            hitText.classList.add('hit-spoof');
-                            gameContainer.classList.remove('shake');
-                            void gameContainer.offsetWidth; 
-                            gameContainer.classList.add('shake');
-                        } else {
-                            hitText.textContent = `+${points}`;
-                            playNormalSound();
-                            hitText.classList.add('hit-normal');
-                        }
-                        
-                        hitText.style.left = `${x}px`;
-                        hitText.style.top = `${y}px`;
-                        document.body.appendChild(hitText);
-                        setTimeout(() => hitText.remove(), 600);
-
-                    } else {
-                        // MISS (Hit an empty hole!)
-                        score--; // Reduce point for miss!
-                        scoreBoard.textContent = score;
-                        lives--;
-                        updateLivesDisplay();
-                        playMissSound();
-
-                        const funnyMissWords = ["-1 Ayyo!", "-1 Missu!", "-1 Kaathu!", "-1 Loosu!"];
-                        const hitText = document.createElement('div');
-                        hitText.classList.add('hit-text', 'hit-miss');
-                        hitText.textContent = funnyMissWords[Math.floor(Math.random() * funnyMissWords.length)];
-                        
-                        hitText.style.left = `${x}px`;
-                        hitText.style.top = `${y}px`;
-                        document.body.appendChild(hitText);
-                        setTimeout(() => hitText.remove(), 600);
-
-                        gameContainer.classList.remove('shake');
-                        void gameContainer.offsetWidth; 
-                        gameContainer.classList.add('shake');
-
-                        if(lives <= 0) {
-                            endGame('died');
-                        }
-                    }
-                }
-
-                const gameBoardEl = document.getElementById('gameBoard');
-                gameBoardEl.addEventListener('pointerdown', handleBoardClick);
-
-                startBtn.addEventListener('click', startGame);
-                pauseBtn.addEventListener('click', togglePause);
-                endBtn.addEventListener('click', () => { if(!timeUp) endGame('ended'); });
-
-                closeMsgBtn.addEventListener('click', () => {
-                    messageBox.classList.add('hidden');
-                    scoreBoard.textContent = '0';
-                    timeDisplay.textContent = settings[currentDifficulty].duration;
-                });
-
-            })(); 
-        </script>
-    </div>
-</body>
-</html>
+<!-- ... existing code ... -->
